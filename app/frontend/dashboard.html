@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Asistencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen overflow-x-hidden">
+
+    <div id="screen-login" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md mx-4">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">Panel de Administración</h1>
+            <p class="text-gray-400 text-center mb-6 text-sm">Sistema de Asistencia QR</p>
+
+            <div id="login-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input id="login-email" type="email" placeholder="admin@empresa.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input id="login-password" type="password" placeholder="••••••••"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <button onclick="login()"
+                    id="login-submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all">
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-dashboard" class="hidden">
+
+        <nav class="bg-white shadow-sm px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">📊 Panel de Administración</h1>
+                <p class="text-xs text-gray-400" id="admin-info"></p>
+            </div>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+                <button onclick="abrirModalQR()"
+                    class="bg-purple-100 hover:bg-purple-200 text-purple-700 text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-all">
+                    🖨️ Ver QR Dinámico
+                </button>
+                <button onclick="openQRDisplay()"
+                    class="bg-purple-700 hover:bg-purple-800 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-all">
+                    Abrir QR en pantalla
+                </button>
+                <a href="/crm" target="_blank"
+                    class="bg-teal-100 hover:bg-teal-200 text-teal-700 text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-all inline-block">
+                    🏥 CRM
+                </a>
+                <a href="/sales-dashboard" target="_blank"
+                    class="bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-all inline-block">
+                    📊 Analytics Premium
+                </a>
+                <button onclick="logout()"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-all">
+                    Salir
+                </button>
+            </div>
+        </nav>
+
+        <div class="px-4 sm:px-6 pt-4">
+            <div class="flex gap-2 border-b border-gray-200 mb-6">
+                <button onclick="showTab('tab-today')" id="btn-tab-today"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">
+                    Hoy
+                </button>
+                <button onclick="showTab('tab-employees')" id="btn-tab-employees"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    Empleados
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-today" class="px-4 sm:px-6">
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                    <p class="text-3xl font-bold text-blue-600" id="stat-total">-</p>
+                    <p class="text-xs text-gray-500 mt-1">Entradas hoy</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                    <p class="text-3xl font-bold text-green-600" id="stat-presentes">-</p>
+                    <p class="text-xs text-gray-500 mt-1">Presentes</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                    <p class="text-3xl font-bold text-gray-400" id="stat-salieron">-</p>
+                    <p class="text-xs text-gray-500 mt-1">Salieron</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="font-semibold text-gray-700">Estado actual</h2>
+                    <button onclick="loadTodayData()" class="text-xs text-blue-500 hover:underline">↻ Actualizar</button>
+                </div>
+                <div id="employees-status" class="divide-y divide-gray-50"></div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-700">Registros de hoy</h2>
+                </div>
+                <div id="logs-list" class="divide-y divide-gray-50 max-h-80 overflow-y-auto"></div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm mb-6">
+                <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="font-semibold text-gray-700">Alertas de anomalías</h2>
+                    <button onclick="loadAnomalies()" class="text-xs text-blue-500 hover:underline">↻ Actualizar</button>
+                </div>
+                <div id="anomalies-list" class="divide-y divide-gray-50"></div>
+            </div>
+        </div>
+
+        <div id="tab-employees" class="hidden px-4 sm:px-6">
+            
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex flex-col lg:flex-row gap-4 items-stretch lg:items-end justify-between">
+                <div>
+                    <h3 class="font-semibold text-blue-800 mb-2">📥 Exportar Liquidación</h3>
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                        <div>
+                            <label class="block text-xs text-blue-600 mb-1">Desde</label>
+                            <input type="date" id="export-start" class="border border-blue-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-blue-600 mb-1">Hasta</label>
+                            <input type="date" id="export-end" class="border border-blue-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400">
+                        </div>
+                    </div>
+                </div>
+                <button onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-all shadow-sm">
+                    Descargar Excel
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 class="font-semibold text-gray-700">Gestión de Empleados</h2>
+                <button onclick="openCreateModal()"
+                    class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all w-full sm:w-auto">
+                    + Nuevo Empleado
+                </button>
+            </div>
+            
+            <div id="employees-list" class="space-y-3 mb-6"></div>
+        </div>
+    </div>
+
+    <div id="modal-force-password" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70] px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 sm:p-6 mx-2">
+            <h2 class="text-lg font-bold text-gray-800 mb-2">Cambiar contraseña obligatoriamente</h2>
+            <p class="text-sm text-gray-500 mb-4">Es tu primer ingreso con contraseña temporal. Debes cambiarla para continuar.</p>
+
+            <div id="force-password-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-3 text-sm"></div>
+            <div id="force-password-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg mb-3 text-sm"></div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+                    <input id="force-current-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                    <input id="force-new-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Repetir nueva contraseña</label>
+                    <input id="force-confirm-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <button id="force-password-btn" onclick="submitForcedPasswordChange()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all">
+                    Guardar nueva contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-employee" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 sm:p-6 mx-2 max-h-[92vh] overflow-y-auto">
+            <h2 class="text-lg font-bold text-gray-800 mb-4" id="modal-title">Nuevo Empleado</h2>
+            <div id="modal-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm"></div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                    <input id="emp-nombre" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sector</label>
+                    <input id="emp-sector" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Convenio</label>
+                    <input id="emp-convenio" type="text" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Valor hora ($)</label>
+                    <input id="emp-valor-hora" type="number" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"/>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 rounded-xl transition-all">Cancelar</button>
+                <button onclick="saveEmployee()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl transition-all" id="employee-submit">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <p class="text-2xl mb-2" id="confirm-icon">⚠️</p>
+            <h2 class="text-lg font-bold text-gray-800 mb-2" id="confirm-title">¿Estás seguro?</h2>
+            <p class="text-gray-500 text-sm mb-6" id="confirm-message"></p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 rounded-xl">Cancelar</button>
+                <button id="confirm-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-qr" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center relative">
+            <button onclick="cerrarModalQR()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h2 class="text-lg font-bold text-gray-800 mb-2">Código QR de Fichaje</h2>
+            <p class="text-sm text-gray-500 mb-4">Los empleados deben escanear este código para fichar. Cambia automáticamente.</p>
+            
+            <canvas id="qr-canvas" class="mx-auto my-4 p-2 bg-white border border-gray-100 rounded-xl shadow-sm"></canvas>
+            
+            <p class="text-xs font-mono text-gray-400 mt-2" id="qr-update-time">Iniciando...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('admin_token');
+        let currentAdminData = null;
+        let editingEmployeeId = null;
+        let confirmCallback = null;
+        let qrInterval; 
+        let isPasswordChangeRequired = false;
+
+        // =============================================
+        // INIT & AUTH
+        // =============================================
+        async function init() {
+            if (token) {
+                const ok = await verifyToken();
+                if (ok) {
+                    showDashboard();
+                    return;
+                }
+            }
+            showLogin();
+        }
+
+        async function verifyToken() {
+            try {
+                const res = await authFetch('/auth/me');
+                if (res.ok) {
+                    currentAdminData = await res.json();
+                    return true;
+                }
+            } catch {}
+            return false;
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    token = data.access_token;
+                    localStorage.setItem('admin_token', token);
+                    currentAdminData = {
+                        nombre: data.admin_name,
+                        tenant_id: data.tenant_id,
+                        must_change_password: !!data.must_change_password,
+                    };
+                    isPasswordChangeRequired = !!data.must_change_password;
+                    showDashboard();
+                } else {
+                    errorEl.textContent = data.detail || 'Error al iniciar sesión';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch {
+                errorEl.textContent = 'Error de conexión con el servidor';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            token = null;
+            currentAdminData = null;
+            isPasswordChangeRequired = false;
+            showLogin();
+        }
+
+        async function authFetch(path, options = {}) {
+            return fetch(`${API_URL}${path}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...(options.headers || {})
+                }
+            });
+        }
+
+        function showForcedPasswordModal() {
+            document.getElementById('modal-force-password').classList.remove('hidden');
+            document.getElementById('force-password-error').classList.add('hidden');
+            document.getElementById('force-password-success').classList.add('hidden');
+        }
+
+        function hideForcedPasswordModal() {
+            document.getElementById('modal-force-password').classList.add('hidden');
+            document.getElementById('force-current-password').value = '';
+            document.getElementById('force-new-password').value = '';
+            document.getElementById('force-confirm-password').value = '';
+        }
+
+        async function submitForcedPasswordChange() {
+            const currentPassword = document.getElementById('force-current-password').value;
+            const newPassword = document.getElementById('force-new-password').value;
+            const confirmPassword = document.getElementById('force-confirm-password').value;
+            const errorEl = document.getElementById('force-password-error');
+            const successEl = document.getElementById('force-password-success');
+            const btn = document.getElementById('force-password-btn');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                errorEl.textContent = 'Completa todos los campos';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                errorEl.textContent = 'La nueva contraseña debe tener al menos 8 caracteres';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                errorEl.textContent = 'La confirmación no coincide';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            try {
+                const res = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                    }),
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.detail || 'No se pudo cambiar la contraseña';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                isPasswordChangeRequired = false;
+                if (currentAdminData) {
+                    currentAdminData.must_change_password = false;
+                }
+                successEl.textContent = 'Contraseña actualizada. Ya puedes usar el panel.';
+                successEl.classList.remove('hidden');
+
+                setTimeout(() => {
+                    hideForcedPasswordModal();
+                    loadTodayData();
+                    loadEmployees();
+                }, 700);
+            } catch {
+                errorEl.textContent = 'Error de conexión al cambiar la contraseña';
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar nueva contraseña';
+            }
+        }
+
+        // =============================================
+        // NAVEGACIÓN Y CARGA DE DATOS
+        // =============================================
+        function showLogin() {
+            document.getElementById('screen-login').classList.remove('hidden');
+            document.getElementById('screen-dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-dashboard').classList.remove('hidden');
+            document.getElementById('admin-info').textContent =
+                `${currentAdminData.nombre} · ${currentAdminData.tenant_id}`;
+
+            if (currentAdminData?.must_change_password || isPasswordChangeRequired) {
+                isPasswordChangeRequired = true;
+                showForcedPasswordModal();
+                return;
+            }
+
+            hideForcedPasswordModal();
+            loadTodayData();
+            loadEmployees();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+        }
+
+        async function loadTodayData() {
+            await Promise.all([loadSummary(), loadEmployeesStatus(), loadLogs(), loadAnomalies()]);
+        }
+
+        async function loadSummary() {
+            const res = await authFetch('/admin/summary');
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('stat-total').textContent = data.total_entradas || 0;
+            document.getElementById('stat-presentes').textContent = data.presentes || 0;
+            document.getElementById('stat-salieron').textContent = data.salieron || 0;
+        }
+
+        async function loadEmployeesStatus() {
+            const res = await authFetch('/admin/employees/status');
+            if (!res.ok) return;
+            const employees = await res.json();
+            const container = document.getElementById('employees-status');
+
+            if (employees.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-sm p-4 text-center">Sin registros hoy</p>`;
+                return;
+            }
+
+            container.innerHTML = employees.map(emp => `
+                <div class="flex items-center justify-between px-4 py-3">
+                    <div>
+                        <p class="font-medium text-gray-800">${emp.nombre}</p>
+                        <p class="text-xs text-gray-400">${emp.sector}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            emp.presente ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                        }">
+                            ${emp.presente ? '✅ Presente' : '⬜ Ausente'}
+                        </span>
+                        ${emp.hora_inicio ? `<p class="text-xs text-gray-400 mt-1">Entró ${formatTime(emp.hora_inicio)}</p>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadLogs() {
+            const res = await authFetch('/admin/logs');
+            if (!res.ok) return;
+            const logs = await res.json();
+            const container = document.getElementById('logs-list');
+
+            if (logs.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-sm p-4 text-center">Sin registros hoy</p>`;
+                return;
+            }
+
+            container.innerHTML = logs.map(log => `
+                <div class="flex items-center justify-between px-4 py-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg">${log.tipo === 'entrada' ? '🟢' : '🔴'}</span>
+                        <div>
+                            <p class="font-medium text-gray-800 text-sm">${log.nombre}</p>
+                            <p class="text-xs text-gray-400 capitalize">${log.tipo}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">${formatTime(log.timestamp)}</p>
+                </div>
+            `).join('');
+        }
+
+        async function loadAnomalies() {
+            const res = await authFetch('/admin/alerts/anomalies?window_days=3&limit=20');
+            if (!res.ok) return;
+
+            const data = await res.json();
+            const anomalies = data.items || [];
+            const container = document.getElementById('anomalies-list');
+
+            if (anomalies.length === 0) {
+                container.innerHTML = `<p class="text-emerald-600 text-sm p-4 text-center">Sin anomalías detectadas en los últimos 3 días</p>`;
+                return;
+            }
+
+            const severityClass = {
+                high: 'bg-red-100 text-red-700',
+                medium: 'bg-yellow-100 text-yellow-700',
+                low: 'bg-blue-100 text-blue-700',
+            };
+
+            container.innerHTML = anomalies.map(item => {
+                const sev = item.severity || 'low';
+                return `
+                    <div class="px-4 py-3 flex items-start justify-between gap-4">
+                        <div>
+                            <p class="font-medium text-gray-800 text-sm">${item.employee_name}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">${item.message}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold ${severityClass[sev] || severityClass.low}">
+                                ${sev.toUpperCase()}
+                            </span>
+                            <p class="text-xs text-gray-400 mt-1">${formatDateTime(item.occurred_at)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadEmployees() {
+            const res = await authFetch('/admin/employees');
+            if (!res.ok) return;
+            const employees = await res.json();
+            const container = document.getElementById('employees-list');
+
+            if (employees.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-sm text-center py-4">No hay empleados</p>`;
+                return;
+            }
+
+            container.innerHTML = employees.map(emp => `
+                <div class="bg-white rounded-xl shadow-sm p-4 ${!emp.activo ? 'opacity-50' : ''}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="font-semibold text-gray-800">${emp.nombre}</p>
+                                <span class="text-xs px-2 py-0.5 rounded-full ${
+                                    emp.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                                }">
+                                    ${emp.activo ? 'Activo' : 'Inactivo'}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500">${emp.sector} ${emp.convenio ? '· ' + emp.convenio : ''}</p>
+                            <p class="text-xs text-gray-400">$${emp.valor_hora}/hora</p>
+                            <p class="text-xs text-gray-500 mt-1">Horas mes: <span class="font-semibold text-gray-700">${Number(emp.horas_acumuladas_mes || 0).toFixed(2)} h</span></p>
+                            <p class="text-xs text-gray-500">Pago estimado hasta la fecha: <span class="font-semibold text-emerald-700">$${Number(emp.pago_estimado_mes || 0).toFixed(2)}</span></p>
+                        </div>
+                        <div class="flex flex-col gap-1 items-end min-w-[140px]">
+                            <button onclick="openEditModal('${emp.id}', '${emp.nombre}', '${emp.sector}', '${emp.convenio || ''}', ${emp.valor_hora})"
+                                class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg">✏️ Editar</button>
+                            <button onclick="confirmUnlinkDevice('${emp.id}', '${emp.nombre}')"
+                                class="text-xs bg-yellow-50 hover:bg-yellow-100 text-yellow-600 px-3 py-1 rounded-lg">📱 Desvincular dispositivo</button>
+                            ${emp.activo ? `
+                            <button onclick="confirmDeactivate('${emp.id}', '${emp.nombre}')"
+                                class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-lg">🚫 Dar de baja</button>` : `
+                            <button onclick="reactivateEmployee('${emp.id}')"
+                                class="text-xs bg-green-50 hover:bg-green-100 text-green-600 px-3 py-1 rounded-lg">✅ Reactivar</button>`}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =============================================
+        // MODALES (EMPLEADOS Y CONFIRMACIONES)
+        // =============================================
+        function openCreateModal() { 
+            editingEmployeeId = null;
+            document.getElementById('modal-title').textContent = 'Nuevo Empleado';
+            document.getElementById('emp-nombre').value = '';
+            document.getElementById('emp-sector').value = '';
+            document.getElementById('emp-convenio').value = '';
+            document.getElementById('emp-valor-hora').value = '';
+            document.getElementById('modal-error').classList.add('hidden');
+            document.getElementById('modal-employee').classList.remove('hidden');
+        }
+
+        function openEditModal(id, nombre, sector, convenio, valorHora) {
+            editingEmployeeId = id;
+            document.getElementById('modal-title').textContent = 'Editar Empleado';
+            document.getElementById('emp-nombre').value = nombre;
+            document.getElementById('emp-sector').value = sector;
+            document.getElementById('emp-convenio').value = convenio;
+            document.getElementById('emp-valor-hora').value = valorHora;
+            document.getElementById('modal-error').classList.add('hidden');
+            document.getElementById('modal-employee').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modal-employee').classList.add('hidden'); }
+        
+        async function saveEmployee() {
+            const nombre = document.getElementById('emp-nombre').value.trim();
+            const sector = document.getElementById('emp-sector').value.trim();
+            const convenio = document.getElementById('emp-convenio').value.trim();
+            const valor_hora = parseFloat(document.getElementById('emp-valor-hora').value) || 0;
+            const errorEl = document.getElementById('modal-error');
+
+            if (!nombre || !sector) {
+                errorEl.textContent = 'Nombre y sector son obligatorios';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            const body = { nombre, sector, convenio: convenio || null, valor_hora };
+            const isEdit = !!editingEmployeeId;
+
+            const res = await authFetch(
+                isEdit ? `/admin/employees/${editingEmployeeId}` : '/admin/employees',
+                { method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(body) }
+            );
+
+            if (res.ok) {
+                closeModal();
+                loadEmployees();
+            } else {
+                const data = await res.json();
+                errorEl.textContent = data.detail || 'Error al guardar';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function bindEnterKey(targetIds, action) {
+            targetIds.forEach((id) => {
+                const element = document.getElementById(id);
+                if (!element) return;
+                element.addEventListener('keydown', (event) => {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    action();
+                });
+            });
+        }
+
+        function bindDashboardEnterKeys() {
+            bindEnterKey(['login-email', 'login-password'], login);
+            bindEnterKey(['force-current-password', 'force-new-password', 'force-confirm-password'], submitForcedPasswordChange);
+            bindEnterKey(['emp-nombre', 'emp-sector', 'emp-convenio', 'emp-valor-hora'], saveEmployee);
+        }
+
+        function showConfirm(icon, title, message, callback, btnClass = 'bg-red-500 hover:bg-red-600') {
+            document.getElementById('confirm-icon').textContent = icon;
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            const btn = document.getElementById('confirm-btn');
+            btn.className = `flex-1 ${btnClass} text-white font-bold py-2 rounded-xl`;
+            confirmCallback = callback;
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        function closeConfirm() {
+            document.getElementById('modal-confirm').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirm-btn').onclick = async () => {
+            if (confirmCallback) await confirmCallback();
+            closeConfirm();
+        };
+
+        function confirmDeactivate(id, nombre) {
+            showConfirm('🚫', '¿Dar de baja?', `${nombre} quedará inactivo y no podrá fichar.`, async () => {
+                await authFetch(`/admin/employees/${id}`, { method: 'DELETE' });
+                loadEmployees();
+            });
+        }
+
+        function confirmUnlinkDevice(id, nombre) {
+            showConfirm('📱', '¿Desvincular dispositivo?', `El dispositivo de ${nombre} será desvinculado.`, async () => {
+                const res = await authFetch(`/admin/employees/${id}/device`, { method: 'DELETE' });
+                const data = await res.json();
+                alert(res.ok ? data.message : data.detail);
+            }, 'bg-yellow-500 hover:bg-yellow-600');
+        }
+
+        async function reactivateEmployee(id) {
+            await authFetch(`/admin/employees/${id}`, { method: 'PUT', body: JSON.stringify({ activo: true }) });
+            loadEmployees();
+        }
+
+        function formatTime(isoString) {
+            return new Date(isoString).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDateTime(isoString) {
+            return new Date(isoString).toLocaleString('es-AR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        }
+
+        // =============================================
+        // LÓGICA DEL QR DINÁMICO (NUEVA VERSIÓN INFALIBLE)
+        // =============================================
+        async function generarYMostrarQR() {
+            try {
+                const response = await authFetch('/admin/qr-data');
+                if (!response.ok) throw new Error("Error en la ruta del servidor");
+                const data = await response.json();
+                
+                console.log("URL a dibujar:", data.url);
+                
+                // Con esta línea mágica dibujamos el QR sin importar qué tan largo sea
+                new QRious({
+                    element: document.getElementById('qr-canvas'),
+                    value: data.url,
+                    size: 256,
+                    level: 'L'
+                });
+                
+                const now = new Date();
+                document.getElementById('qr-update-time').innerText = 
+                    `Actualizado: ${now.toLocaleTimeString('es-AR')} (cambia en 30s)`;
+                    
+            } catch (error) {
+                console.error("Error al actualizar QR", error);
+                document.getElementById('qr-update-time').innerText = "Error de conexión. Revisar consola.";
+            }
+        }
+
+        function abrirModalQR() {
+            document.getElementById('modal-qr').classList.remove('hidden');
+            generarYMostrarQR();
+            if (qrInterval) clearInterval(qrInterval);
+            qrInterval = setInterval(generarYMostrarQR, 30000);
+        }
+
+        function openQRDisplay() {
+            window.open('/qr-display', '_blank', 'noopener,noreferrer');
+        }
+
+        function cerrarModalQR() {
+            document.getElementById('modal-qr').classList.add('hidden');
+            if (qrInterval) clearInterval(qrInterval);
+        }
+        // =============================================
+        // EXPORTAR A EXCEL (CSV)
+        // =============================================
+        async function exportarExcel() {
+            const start = document.getElementById('export-start').value;
+            const end = document.getElementById('export-end').value;
+
+            if (!start || !end) {
+                alert("Por favor selecciona ambas fechas para exportar.");
+                return;
+            }
+
+            // A diferencia de authFetch, para descargar archivos usamos fetch directo
+            // porque necesitamos procesar la respuesta como un "Blob" (archivo binario/texto)
+            try {
+                const response = await fetch(`${API_URL}/admin/export/attendance?start_date=${start}&end_date=${end}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    alert("Error al exportar: " + (data.detail || "Revisa las fechas."));
+                    return;
+                }
+
+                // Convertir la respuesta del servidor en un archivo descargable
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                
+                // Truco de JS para forzar la descarga en el navegador
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `liquidacion_${start}_al_${end}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Limpieza
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+                
+            } catch (error) {
+                console.error(error);
+                alert("Error de conexión al intentar descargar.");
+            }
+        }
+
+        // =============================================
+        // ARRANCAR 
+        // =============================================
+        bindDashboardEnterKeys();
+        init();
+    </script>
+</body>
+</html>

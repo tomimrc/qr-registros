@@ -1,0 +1,24 @@
+schema: spec-driven
+
+
+context: |
+  # Tech Stack
+  - Backend: Python, FastAPI, SQLAlchemy (ORM), Alembic (Migraciones).
+  - Database: PostgreSQL.
+  - Frontend: React.
+  - UI/UX: Animaciones gestionadas con Motion (Framer Motion).
+  
+  # Dominio del Negocio
+  - Plataforma SaaS para gestión de empleados.
+  - Módulos principales: Ingreso/egreso por código QR, analítica de horas trabajadas, liquidación de pagos ($/hora) y CRM/Ventas.
+  
+  # Arquitectura y Convenciones
+  - Arquitectura estricta en capas: Routers -> Services -> Models.
+  - Los Routers solo manejan HTTP y validación de Pydantic.
+  - Toda la lógica de negocio vive exclusivamente en la capa de Services.
+
+rules:
+  design:
+    - Priorizar siempre la alta modularización. Los dominios (ej. QR vs Pagos) deben ser independientes y no estar fuertemente acoplados.
+  tasks:
+    - Las tareas deben ser granulares y especificar qué archivo exacto se debe crear o modificar.

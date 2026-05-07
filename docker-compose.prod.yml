@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qr_registros_app
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      WORKERS: "2"
+      FORWARDED_ALLOW_IPS: "*"
+    expose:
+      - "8000"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-coolify}
+      - traefik.http.routers.qr-registros.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.qr-registros.tls=true
+      - traefik.http.routers.qr-registros.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.qr-registros.loadbalancer.server.port=8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=5)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-coolify}

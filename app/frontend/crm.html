@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Nucleo Comun</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="screen-login" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md mx-4">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">CRM - Nucleo Comun</h1>
+            <p class="text-gray-400 text-center mb-6 text-sm">Inicia sesion para continuar</p>
+
+            <div id="login-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input id="login-email" type="email" placeholder="admin@empresa.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
+                    <input id="login-password" type="password" placeholder="********"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all">
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-crm" class="hidden">
+        <nav class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">CRM - Nucleo Comun</h1>
+                <p class="text-xs text-gray-400" id="admin-info"></p>
+            </div>
+            <button onclick="logout()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                Salir
+            </button>
+        </nav>
+
+        <div class="px-6 pt-4">
+            <div id="crm-global-error" class="hidden mb-4 rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700"></div>
+            <div class="flex gap-2 border-b border-gray-200 mb-6 overflow-x-auto">
+                <button onclick="switchTab('professionals')" id="btn-professionals"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 whitespace-nowrap">
+                    Profesionales
+                </button>
+                <button onclick="switchTab('files')" id="btn-files"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                    Expedientes
+                </button>
+                <button onclick="switchTab('appointments')" id="btn-appointments"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                    Turnos
+                </button>
+                <button onclick="switchTab('reports')" id="btn-reports"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                    Reportes
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-professionals" class="px-6 pb-6">
+            <div class="mb-4 flex gap-2 justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">Profesionales</h2>
+                <button onclick="openProfessionalModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                    + Agregar
+                </button>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Nombre</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Especialidad</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Rol</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Estado</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="professionals-list" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-files" class="px-6 pb-6 hidden">
+            <div class="mb-4 flex gap-2 justify-between items-center flex-wrap">
+                <h2 class="text-lg font-semibold text-gray-800">Expedientes</h2>
+                <div class="flex gap-2 flex-wrap">
+                    <input id="search-files" type="text" placeholder="Buscar..."
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onkeyup="loadFiles()"/>
+                    <select id="filter-files-coverage" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="loadFiles()">
+                        <option value="">Cobertura: todas</option>
+                        <option value="particular">Particular</option>
+                        <option value="obra_social">Obra social</option>
+                        <option value="prepaga">Prepaga</option>
+                    </select>
+                    <input id="filter-files-affiliate" type="text" placeholder="Nro afiliado"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onkeyup="loadFiles()"/>
+                    <select id="filter-files-professional" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="loadFiles()">
+                        <option value="">Profesional: todos</option>
+                    </select>
+                    <select id="filter-files-status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" onchange="loadFiles()">
+                        <option value="">Estado: activos</option>
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                        <option value="archived">Archivado</option>
+                    </select>
+                    <button onclick="openFileModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                        + Nuevo
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-3" id="files-list"></div>
+        </div>
+
+        <div id="tab-appointments" class="px-6 pb-6 hidden">
+            <div class="mb-4 flex gap-2 justify-between items-center flex-wrap">
+                <h2 class="text-lg font-semibold text-gray-800">Turnos</h2>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="loadAppointments(); loadBookingAppointments();" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                        Actualizar
+                    </button>
+                    <button onclick="openAppointmentModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                        + Agendar
+                    </button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Fecha/Hora</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointments-list" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <h3 class="text-base font-semibold text-gray-800">Turnos de Auto-gestion (Booking)</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <input id="booking-from-date" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                        <input id="booking-to-date" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                        <select id="booking-professional-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Profesional: todos</option>
+                        </select>
+                        <select id="booking-status-filter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Estado: todos</option>
+                            <option value="scheduled">Programado</option>
+                            <option value="confirmed">Confirmado</option>
+                            <option value="completed">Completado</option>
+                            <option value="cancelled">Cancelado</option>
+                            <option value="no_show">No show</option>
+                        </select>
+                        <button onclick="loadBookingAppointments()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">Filtrar</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Fecha/Hora</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Cliente y Profesional</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Estado</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Sync Google</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booking-appointments-list" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-reports" class="px-6 pb-6 hidden">
+            <div class="mb-4 flex gap-2 justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">Reportes de Visita</h2>
+                <button onclick="openReportModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                    + Nuevo Reporte
+                </button>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Fecha</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Resumen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-list" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="file-detail-panel" class="fixed inset-0 z-40 hidden">
+            <div class="absolute inset-0 bg-black bg-opacity-40" onclick="closeFileDetailPanel()"></div>
+            <div class="absolute right-0 top-0 h-full w-full md:w-[560px] bg-white shadow-2xl flex flex-col">
+                <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800" id="detail-title">Detalle de expediente</h3>
+                        <p class="text-xs text-gray-500" id="detail-subtitle"></p>
+                    </div>
+                    <button onclick="closeFileDetailPanel()" class="text-sm text-gray-500 hover:text-gray-800">Cerrar</button>
+                </div>
+                <div id="detail-content" class="p-5 overflow-y-auto space-y-4 text-sm text-gray-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-professional" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Agregar Profesional</h2>
+            <div class="space-y-3">
+                <input id="prof-name" type="text" placeholder="Nombre" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="prof-specialty" type="text" placeholder="Especialidad" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="prof-role" type="text" placeholder="Rol" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="prof-color" type="color" value="#1d4ed8" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+
+                <div id="professional-google-box" class="hidden rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-sm font-semibold text-gray-800">Google Calendar</p>
+                        <span id="prof-google-state" class="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">Sin configurar</span>
+                    </div>
+                    <input id="prof-google-calendar-id" type="text" placeholder="Calendar ID (ej: primary)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <label class="flex items-center gap-2 text-xs text-gray-600">
+                        <input id="prof-google-sync-enabled" type="checkbox" class="accent-blue-600" /> Sync habilitado
+                    </label>
+                    <div class="flex gap-2">
+                        <button onclick="startProfessionalGoogleOAuth()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-sm">Conectar Google</button>
+                        <button onclick="saveProfessionalGoogleSettings()" class="flex-1 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2 rounded-lg text-sm">Guardar Google</button>
+                    </div>
+                    <p class="text-[11px] text-gray-500">Primero conecta OAuth, luego podes cambiar calendar ID y sync desde CRM.</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="saveProfessional()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                    <button onclick="closeProfessionalModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-file" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Nuevo Expediente</h2>
+            <div class="space-y-3">
+                <input id="file-display-name" type="text" placeholder="Nombre" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <select id="file-subject-kind" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="client">Cliente</option>
+                    <option value="patient">Paciente</option>
+                    <option value="case">Caso</option>
+                    <option value="company">Empresa</option>
+                </select>
+                <input id="file-email" type="email" placeholder="Email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="file-phone" type="text" placeholder="Telefono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="file-document" type="text" placeholder="Documento" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <select id="file-coverage-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <option value="particular">Particular</option>
+                    <option value="obra_social">Obra social</option>
+                    <option value="prepaga">Prepaga</option>
+                </select>
+                <input id="file-coverage-name" type="text" placeholder="Nombre cobertura" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="file-affiliate-number" type="text" placeholder="Nro afiliado" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <label class="text-xs text-gray-500">Profesionales vinculados</label>
+                <select id="file-professionals" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[96px]"></select>
+                <textarea id="file-notes" placeholder="Notas" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <div class="flex gap-2">
+                    <button onclick="saveFile()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                    <button onclick="closeFileModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-appointment" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Agendar Turno</h2>
+            <div class="space-y-3">
+                <select id="app-professional" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <select id="app-file" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <input id="app-datetime" type="datetime-local" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="app-title" type="text" placeholder="Titulo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <input id="app-location" type="text" placeholder="Ubicacion" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <div class="flex gap-2">
+                    <button onclick="saveAppointment()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                    <button onclick="closeAppointmentModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-report" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Nuevo Reporte</h2>
+            <div class="space-y-3">
+                <select id="rep-professional" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <select id="rep-file" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></select>
+                <input id="rep-datetime" type="datetime-local" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <textarea id="rep-summary" placeholder="Resumen" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <textarea id="rep-findings" placeholder="Hallazgos" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
+                <div class="flex gap-2">
+                    <button onclick="saveReport()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                    <button onclick="closeReportModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-booking-reschedule" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Reprogramar turno de booking</h2>
+            <p class="text-sm text-gray-500 mb-3">La reprogramacion actualiza automaticamente Google Calendar si esta sincronizado.</p>
+            <div class="space-y-3">
+                <input id="booking-reschedule-datetime" type="datetime-local" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                <div class="flex gap-2">
+                    <button onclick="saveBookingReschedule()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                    <button onclick="closeBookingRescheduleModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "";
+        const ADMIN_TOKEN_KEY = "admin_token";
+        let token = localStorage.getItem(ADMIN_TOKEN_KEY);
+        let currentAdminData = null;
+        let currentEditId = { professional: null, file: null, appointment: null, report: null };
+        let professionalsById = {};
+        let professionalGoogleById = {};
+        let filesById = {};
+        let bookingAppointmentsById = {};
+        let currentFileDetailId = null;
+        let currentFileDetailData = null;
+        let currentBookingRescheduleId = null;
+
+        function normalizeCoverageType(type) {
+            const raw = String(type || "particular").toLowerCase();
+            if (raw === "obra_social") return "Obra social";
+            if (raw === "prepaga") return "Prepaga";
+            return "Particular";
+        }
+
+        function getProfessionalById(id) {
+            return professionalsById[id] || null;
+        }
+
+        function isValidColor(color) {
+            return /^#[0-9a-fA-F]{6}$/.test(String(color || ""));
+        }
+
+        function getProfessionalColor(id) {
+            const color = getProfessionalById(id)?.calendar_color;
+            return isValidColor(color) ? color : "#1d4ed8";
+        }
+
+        function formatProfessionalNames(list) {
+            if (!Array.isArray(list) || list.length === 0) return "Sin profesionales vinculados";
+            return list.map((p) => p.name).join(", ");
+        }
+
+        function setMultiSelectValues(selectId, values) {
+            const wanted = new Set((values || []).map((id) => String(id)));
+            Array.from(document.getElementById(selectId).options).forEach((opt) => {
+                opt.selected = wanted.has(String(opt.value));
+            });
+        }
+
+        function getMultiSelectValues(selectId) {
+            return Array.from(document.getElementById(selectId).selectedOptions).map((opt) => opt.value);
+        }
+
+        function getAllowedSubjectKindsForProfessional(professional) {
+            if (!professional) return new Set(["patient", "client", "case", "company", "lead"]);
+            const roleText = `${professional.role_label || ""} ${professional.specialty || ""}`.toLowerCase();
+            if (!roleText.trim()) return new Set(["patient", "client", "case", "company", "lead"]);
+
+            const rules = [
+                { keywords: ["medic", "doctor", "psic", "terap", "kinesi", "nutri", "fono", "odont", "pediat", "gine", "salud", "enferm"], kinds: ["patient"] },
+                { keywords: ["abog", "legal", "jurid"], kinds: ["client", "case"] },
+                { keywords: ["contad", "contab", "impuest", "auditor"], kinds: ["client", "company"] },
+            ];
+
+            for (const rule of rules) {
+                if (rule.keywords.some((keyword) => roleText.includes(keyword))) {
+                    return new Set(rule.kinds);
+                }
+            }
+
+            return new Set(["patient", "client", "case", "company", "lead"]);
+        }
+
+        function filterFileOptionsByProfessional(professionalSelectId, fileSelectId) {
+            const professionalId = document.getElementById(professionalSelectId).value;
+            const professional = getProfessionalById(professionalId);
+            const allowedKinds = getAllowedSubjectKindsForProfessional(professional);
+            const fileSelect = document.getElementById(fileSelectId);
+
+            const compatibleFiles = Object.values(filesById)
+                .filter((file) => allowedKinds.has(file.subject_kind))
+                .sort((a, b) => String(a.display_name || "").localeCompare(String(b.display_name || ""), "es"));
+
+            if (compatibleFiles.length === 0) {
+                fileSelect.innerHTML = '<option value="">Sin expedientes compatibles</option>';
+                return;
+            }
+
+            fileSelect.innerHTML = compatibleFiles
+                .map((file) => `<option value="${file.id}">${file.display_name}</option>`)
+                .join("");
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        function showScreen(screen) {
+            document.getElementById("screen-login").classList.toggle("hidden", screen !== "login");
+            document.getElementById("screen-crm").classList.toggle("hidden", screen !== "crm");
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll("[id^='tab-']").forEach((el) => el.classList.add("hidden"));
+            document.getElementById(`tab-${tab}`).classList.remove("hidden");
+            document.querySelectorAll(".tab-btn").forEach((el) => {
+                el.classList.remove("border-blue-500", "text-blue-600");
+                el.classList.add("border-transparent", "text-gray-500");
+            });
+            document.getElementById(`btn-${tab}`).classList.add("border-blue-500", "text-blue-600");
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove("hidden");
+            setTimeout(() => el.classList.add("hidden"), 5000);
+        }
+
+        function showGlobalError(message) {
+            const el = document.getElementById("crm-global-error");
+            el.textContent = message;
+            el.classList.remove("bg-green-100", "text-green-700");
+            el.classList.add("bg-red-100", "text-red-700");
+            el.classList.remove("hidden");
+        }
+
+        function showGlobalSuccess(message) {
+            const el = document.getElementById("crm-global-error");
+            el.textContent = message;
+            el.classList.remove("bg-red-100", "text-red-700");
+            el.classList.add("bg-green-100", "text-green-700");
+            el.classList.remove("hidden");
+        }
+
+        function clearGlobalError() {
+            const el = document.getElementById("crm-global-error");
+            el.classList.add("hidden");
+            el.textContent = "";
+            el.classList.remove("bg-green-100", "text-green-700");
+            el.classList.add("bg-red-100", "text-red-700");
+        }
+
+        function renderProfessionalGoogleState(config) {
+            const stateEl = document.getElementById("prof-google-state");
+            if (!stateEl) return;
+
+            const hasToken = !!config?.has_token;
+            const syncEnabled = !!config?.sync_enabled;
+            if (hasToken && syncEnabled) {
+                stateEl.textContent = "Conectado + Sync ON";
+                stateEl.className = "px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700";
+                return;
+            }
+            if (hasToken) {
+                stateEl.textContent = "Conectado + Sync OFF";
+                stateEl.className = "px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700";
+                return;
+            }
+
+            stateEl.textContent = "Sin configurar";
+            stateEl.className = "px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700";
+        }
+
+        async function loadProfessionalGoogleSettings(professionalId) {
+            const box = document.getElementById("professional-google-box");
+            if (!box || !professionalId) return;
+
+            box.classList.remove("hidden");
+            renderProfessionalGoogleState(null);
+            document.getElementById("prof-google-calendar-id").value = "";
+            document.getElementById("prof-google-sync-enabled").checked = false;
+
+            try {
+                const res = await apiFetch(`/booking/professionals/${professionalId}/google-calendar`);
+                if (!res.ok) {
+                    throw new Error(await parseApiError(res, "No se pudo cargar Google Calendar"));
+                }
+                const data = await res.json();
+                professionalGoogleById[professionalId] = data;
+                document.getElementById("prof-google-calendar-id").value = data.google_calendar_id || "";
+                document.getElementById("prof-google-sync-enabled").checked = !!data.sync_enabled;
+                renderProfessionalGoogleState(data);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo cargar configuracion de Google");
+            }
+        }
+
+        async function startProfessionalGoogleOAuth() {
+            const professionalId = currentEditId.professional;
+            if (!professionalId) {
+                showGlobalError("Guarda el profesional primero para conectar Google");
+                return;
+            }
+
+            try {
+                const res = await apiFetch("/booking/google-oauth-init", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ professional_id: professionalId }),
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo iniciar OAuth con Google"));
+                const data = await res.json();
+                if (!data.oauth_url) throw new Error("No se recibio URL de autorizacion OAuth");
+                window.location.href = data.oauth_url;
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo iniciar OAuth con Google");
+            }
+        }
+
+        async function saveProfessionalGoogleSettings() {
+            const professionalId = currentEditId.professional;
+            if (!professionalId) {
+                showGlobalError("Selecciona un profesional para guardar Google Calendar");
+                return;
+            }
+
+            const payload = {
+                google_calendar_id: document.getElementById("prof-google-calendar-id").value.trim() || "primary",
+                sync_enabled: document.getElementById("prof-google-sync-enabled").checked,
+            };
+
+            try {
+                const res = await apiFetch(`/booking/professionals/${professionalId}/google-calendar`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo guardar Google Calendar"));
+                const data = await res.json();
+                professionalGoogleById[professionalId] = {
+                    ...(professionalGoogleById[professionalId] || {}),
+                    ...data,
+                    has_token: !!professionalGoogleById[professionalId]?.has_token,
+                };
+                renderProfessionalGoogleState(professionalGoogleById[professionalId]);
+                showGlobalSuccess("Configuracion de Google Calendar actualizada");
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo guardar Google Calendar");
+            }
+        }
+
+        async function handleGoogleOAuthCallbackIfPresent() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get("code");
+            const state = params.get("state");
+            if (!code || !state) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/booking/google-oauth-callback`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code, state }),
+                });
+
+                if (!res.ok) {
+                    throw new Error(await parseApiError(res, "No se pudo completar OAuth de Google"));
+                }
+
+                showGlobalSuccess("Google Calendar conectado correctamente");
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo completar OAuth de Google");
+            } finally {
+                const clean = `${window.location.pathname}${window.location.hash || ""}`;
+                window.history.replaceState({}, document.title, clean);
+            }
+        }
+
+        async function parseApiError(res, fallbackMessage) {
+            let detail = fallbackMessage;
+            try {
+                const payload = await res.json();
+                if (payload?.detail) detail = payload.detail;
+            } catch {}
+
+            if (res.status === 401) {
+                return "Sesion expirada. Volve a iniciar sesion.";
+            }
+            if (res.status === 403 && String(detail).toLowerCase().includes("feature crm_core")) {
+                return "El modulo CRM no esta habilitado para este cliente. Activalo en Master Dashboard.";
+            }
+            return detail;
+        }
+
+        async function verifyToken() {
+            if (!token) return false;
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    if (res.status === 401) localStorage.removeItem(ADMIN_TOKEN_KEY);
+                    return false;
+                }
+                currentAdminData = await res.json();
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value;
+
+            if (!email || !password) {
+                showError("login-error", "Completa todos los campos");
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append("username", email);
+                formData.append("password", password);
+
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Credenciales invalidas");
+
+                token = data.access_token;
+                localStorage.setItem(ADMIN_TOKEN_KEY, token);
+                currentAdminData = {
+                    nombre: data.admin_name,
+                    tenant_id: data.tenant_id,
+                    must_change_password: !!data.must_change_password
+                };
+
+                document.getElementById("admin-info").textContent = currentAdminData.nombre || "";
+                showScreen("crm");
+                await loadCRM();
+            } catch (e) {
+                showError("login-error", e.message || "No se pudo iniciar sesion");
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem(ADMIN_TOKEN_KEY);
+            currentAdminData = null;
+            showScreen("login");
+        }
+
+        async function apiFetch(path, options = {}) {
+            const headers = options.headers || {};
+            if (token) headers.Authorization = `Bearer ${token}`;
+            return fetch(`${API_BASE}${path}`, { ...options, headers });
+        }
+
+        async function loadCRM() {
+            token = localStorage.getItem(ADMIN_TOKEN_KEY);
+            if (!(await verifyToken())) {
+                showScreen("login");
+                return;
+            }
+
+            clearGlobalError();
+            await handleGoogleOAuthCallbackIfPresent();
+            document.getElementById("admin-info").textContent = currentAdminData?.nombre || "";
+            await loadProfessionals();
+            initBookingDateFilters();
+            await Promise.all([loadFiles(), loadAppointments(), loadBookingAppointments(), loadReports()]);
+        }
+
+        function initBookingDateFilters() {
+            const fromInput = document.getElementById("booking-from-date");
+            const toInput = document.getElementById("booking-to-date");
+            if (!fromInput || !toInput) return;
+            if (fromInput.value && toInput.value) return;
+
+            const now = new Date();
+            const first = new Date(now);
+            const last = new Date(now);
+            first.setDate(first.getDate() - 7);
+            last.setDate(last.getDate() + 30);
+
+            fromInput.value = first.toISOString().slice(0, 10);
+            toInput.value = last.toISOString().slice(0, 10);
+        }
+
+        async function loadProfessionals() {
+            const list = document.getElementById("professionals-list");
+            list.innerHTML = '<tr><td class="px-4 py-3 text-gray-500">Cargando...</td></tr>';
+            try {
+                const res = await apiFetch("/crm/professionals");
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudieron cargar profesionales"));
+                const data = await res.json();
+                professionalsById = {};
+                (data.items || []).forEach((p) => {
+                    professionalsById[p.id] = p;
+                });
+                const filterSelect = document.getElementById("filter-files-professional");
+                if (filterSelect) {
+                    const currentValue = filterSelect.value;
+                    filterSelect.innerHTML = '<option value="">Profesional: todos</option>' + (data.items || [])
+                        .map((p) => `<option value="${p.id}">${p.name}</option>`)
+                        .join("");
+                    if (currentValue) {
+                        filterSelect.value = currentValue;
+                    }
+                }
+                const bookingProfFilter = document.getElementById("booking-professional-filter");
+                if (bookingProfFilter) {
+                    const currentValue = bookingProfFilter.value;
+                    bookingProfFilter.innerHTML = '<option value="">Profesional: todos</option>' + (data.items || [])
+                        .map((p) => `<option value="${p.id}">${p.name}</option>`)
+                        .join("");
+                    if (currentValue) {
+                        bookingProfFilter.value = currentValue;
+                    }
+                }
+                const rows = (data.items || []).map((p) => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:${getProfessionalColor(p.id)}"></span>
+                                <span>${p.name}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">${p.specialty || "-"}</td>
+                        <td class="px-4 py-3 text-gray-600">${p.role_label || "-"}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs font-semibold ${p.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}">${p.active ? "Activo" : "Inactivo"}</span></td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="editProfessional('${p.id}')" class="text-blue-600 hover:underline text-xs">Editar</button>
+                                <button onclick="openProfessionalModal('${p.id}')" class="text-emerald-700 hover:underline text-xs">Google Calendar</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join("");
+                list.innerHTML = rows || '<tr><td class="px-4 py-3 text-gray-500">Sin profesionales</td></tr>';
+            } catch (err) {
+                list.innerHTML = '<tr><td class="px-4 py-3 text-red-600">Error al cargar</td></tr>';
+                showGlobalError(err?.message || "No se pudieron cargar profesionales");
+            }
+        }
+
+        async function loadFiles() {
+            const list = document.getElementById("files-list");
+            list.innerHTML = '<div class="bg-white rounded-lg p-4 text-gray-500">Cargando...</div>';
+            try {
+                const q = document.getElementById("search-files")?.value?.trim() || "";
+                const coverage = document.getElementById("filter-files-coverage")?.value || "";
+                const affiliate = document.getElementById("filter-files-affiliate")?.value?.trim() || "";
+                const professional = document.getElementById("filter-files-professional")?.value || "";
+                const statusValue = document.getElementById("filter-files-status")?.value || "";
+                const params = new URLSearchParams();
+                if (q) params.set("q", q);
+                if (coverage) params.set("coverage_type", coverage);
+                if (affiliate) params.set("affiliate_number", affiliate);
+                if (professional) params.set("professional_id", professional);
+                if (statusValue) params.set("status", statusValue);
+                const query = params.toString();
+                const res = await apiFetch(`/crm/files${query ? `?${query}` : ""}`);
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudieron cargar expedientes"));
+                const data = await res.json();
+                filesById = {};
+                (data.items || []).forEach((f) => {
+                    filesById[f.id] = f;
+                });
+                const cards = (data.items || []).map((f) => `
+                    <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                        <div class="flex items-start justify-between gap-3">
+                            <button onclick="openFileDetailPanel('${f.id}')" class="text-left flex-1">
+                                <p class="font-semibold text-gray-800">${f.display_name}</p>
+                                <p class="text-xs text-gray-500">${f.subject_kind || "-"}</p>
+                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="openFileDetailPanel('${f.id}')" class="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700">Ver detalle</button>
+                                <button onclick="openFileModal('${f.id}')" class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">Editar</button>
+                                ${f.status === "archived"
+                                    ? `<button onclick="restoreFile('${f.id}')" class="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Restaurar</button>`
+                                    : `<button onclick="archiveFile('${f.id}')" class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">Archivar</button>`}
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600 space-y-1">
+                            <p><span class="font-semibold">Estado:</span> ${f.status || "active"}</p>
+                            <p><span class="font-semibold">Cobertura:</span> ${normalizeCoverageType(f.coverage_type)} ${f.coverage_name ? `- ${f.coverage_name}` : ""}</p>
+                            <p><span class="font-semibold">Afiliado:</span> ${f.affiliate_number || "-"}</p>
+                            <p><span class="font-semibold">Profesionales:</span> ${formatProfessionalNames(f.linked_professionals)}</p>
+                        </div>
+                    </div>
+                `).join("");
+                list.innerHTML = cards || '<div class="bg-white rounded-lg p-4 text-gray-500">Sin expedientes</div>';
+            } catch (err) {
+                list.innerHTML = '<div class="bg-white rounded-lg p-4 text-red-600">Error al cargar</div>';
+                showGlobalError(err?.message || "No se pudieron cargar expedientes");
+            }
+        }
+
+        async function openFileDetailPanel(fileId) {
+            const panel = document.getElementById("file-detail-panel");
+            const content = document.getElementById("detail-content");
+            panel.classList.remove("hidden");
+            content.innerHTML = '<div class="text-gray-500">Cargando detalle...</div>';
+
+            try {
+                const res = await apiFetch(`/crm/files/${fileId}`);
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo cargar el detalle"));
+                const data = await res.json();
+                currentFileDetailId = fileId;
+                currentFileDetailData = data;
+                renderFileDetail(false);
+            } catch (err) {
+                content.innerHTML = `<div class="text-red-600">${err?.message || "No se pudo cargar el detalle"}</div>`;
+            }
+        }
+
+        function renderFileDetail(isEditing) {
+            const content = document.getElementById("detail-content");
+            const subject = currentFileDetailData?.subject || {};
+            const timeline = currentFileDetailData?.timeline || [];
+            document.getElementById("detail-title").textContent = subject.display_name || "Detalle de expediente";
+            document.getElementById("detail-subtitle").textContent = `${subject.subject_kind || "-"} | ${normalizeCoverageType(subject.coverage_type)}${subject.coverage_name ? ` - ${subject.coverage_name}` : ""}`;
+
+            const timelineHtml = timeline.length
+                ? timeline.map((item) => {
+                    const kind = item.type === "appointment" ? "Turno" : "Reporte";
+                    const dt = item.occurred_at ? new Date(item.occurred_at).toLocaleString("es-AR") : "-";
+                    const payload = item.data || {};
+                    const proName = getProfessionalById(payload.professional_id)?.name || "Profesional";
+                    const color = getProfessionalColor(payload.professional_id);
+                    const bodyText = item.type === "appointment"
+                        ? `${payload.title || "Sin titulo"} - ${payload.status || "-"}`
+                        : (payload.summary || "Sin resumen");
+                    return `
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:${color}"></span>
+                                <span class="text-xs text-gray-500">${dt}</span>
+                                <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">${kind}</span>
+                            </div>
+                            <p class="text-xs text-gray-500">${proName}</p>
+                            <p class="text-sm text-gray-800 mt-1">${bodyText}</p>
+                        </div>
+                    `;
+                }).join("")
+                : '<div class="text-gray-500">Sin historial de turnos/reportes.</div>';
+
+            if (!isEditing) {
+                content.innerHTML = `
+                    <div class="flex items-center justify-end gap-2">
+                        ${subject.status === "archived"
+                            ? `<button onclick="restoreFile('${subject.id}', true)" class="text-xs px-3 py-1.5 rounded bg-emerald-100 text-emerald-700">Restaurar</button>`
+                            : `<button onclick="archiveFile('${subject.id}', true)" class="text-xs px-3 py-1.5 rounded bg-amber-100 text-amber-700">Archivar</button>`}
+                        <button onclick="renderFileDetail(true)" class="text-xs px-3 py-1.5 rounded bg-blue-600 text-white">Editar expediente</button>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 text-sm">
+                        <p><span class="font-semibold">Email:</span> ${subject.email || "-"}</p>
+                        <p><span class="font-semibold">Telefono:</span> ${subject.phone || "-"}</p>
+                        <p><span class="font-semibold">Documento:</span> ${subject.document_id || "-"}</p>
+                        <p><span class="font-semibold">Afiliado:</span> ${subject.affiliate_number || "-"}</p>
+                        <p><span class="font-semibold">Estado:</span> ${subject.status || "active"}</p>
+                        <p><span class="font-semibold">Profesionales:</span> ${formatProfessionalNames(subject.linked_professionals)}</p>
+                        <p><span class="font-semibold">Notas:</span> ${subject.notes || "-"}</p>
+                    </div>
+                    <div class="pt-2 border-t border-gray-200">
+                        <h4 class="font-semibold text-gray-800 mb-2">Historial</h4>
+                        <div class="space-y-2">${timelineHtml}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const professionalOptions = Object.values(professionalsById)
+                .map((p) => {
+                    const selected = (subject.linked_professionals || []).some((lp) => lp.id === p.id);
+                    return `<option value="${p.id}" ${selected ? "selected" : ""}>${escapeHtml(p.name)}</option>`;
+                })
+                .join("");
+
+            content.innerHTML = `
+                <div class="space-y-3 border border-gray-200 rounded-lg p-3">
+                    <input id="detail-display-name" type="text" value="${escapeHtml(subject.display_name)}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <select id="detail-subject-kind" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="client" ${subject.subject_kind === "client" ? "selected" : ""}>Cliente</option>
+                        <option value="patient" ${subject.subject_kind === "patient" ? "selected" : ""}>Paciente</option>
+                        <option value="case" ${subject.subject_kind === "case" ? "selected" : ""}>Caso</option>
+                        <option value="company" ${subject.subject_kind === "company" ? "selected" : ""}>Empresa</option>
+                    </select>
+                    <input id="detail-email" type="email" value="${escapeHtml(subject.email)}" placeholder="Email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <input id="detail-phone" type="text" value="${escapeHtml(subject.phone)}" placeholder="Telefono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <input id="detail-document" type="text" value="${escapeHtml(subject.document_id)}" placeholder="Documento" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <select id="detail-coverage-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="particular" ${subject.coverage_type === "particular" ? "selected" : ""}>Particular</option>
+                        <option value="obra_social" ${subject.coverage_type === "obra_social" ? "selected" : ""}>Obra social</option>
+                        <option value="prepaga" ${subject.coverage_type === "prepaga" ? "selected" : ""}>Prepaga</option>
+                    </select>
+                    <input id="detail-coverage-name" type="text" value="${escapeHtml(subject.coverage_name)}" placeholder="Nombre cobertura" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <input id="detail-affiliate-number" type="text" value="${escapeHtml(subject.affiliate_number)}" placeholder="Nro afiliado" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"/>
+                    <select id="detail-professionals" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[96px]">${professionalOptions}</select>
+                    <textarea id="detail-notes" rows="3" placeholder="Notas" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">${escapeHtml(subject.notes)}</textarea>
+                    <div class="flex gap-2">
+                        <button onclick="saveFileFromDetail()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Guardar</button>
+                        <button onclick="renderFileDetail(false)" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg">Cancelar</button>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-gray-200">
+                    <h4 class="font-semibold text-gray-800 mb-2">Historial</h4>
+                    <div class="space-y-2">${timelineHtml}</div>
+                </div>
+            `;
+        }
+
+        async function saveFileFromDetail() {
+            if (!currentFileDetailId) return;
+            const payload = {
+                display_name: document.getElementById("detail-display-name").value.trim(),
+                subject_kind: document.getElementById("detail-subject-kind").value,
+                email: document.getElementById("detail-email").value.trim(),
+                phone: document.getElementById("detail-phone").value.trim(),
+                document_id: document.getElementById("detail-document").value.trim(),
+                coverage_type: document.getElementById("detail-coverage-type").value,
+                coverage_name: document.getElementById("detail-coverage-name").value.trim(),
+                affiliate_number: document.getElementById("detail-affiliate-number").value.trim(),
+                professional_ids: getMultiSelectValues("detail-professionals"),
+                notes: document.getElementById("detail-notes").value.trim(),
+            };
+            if (!payload.display_name) return showGlobalError("Completa el nombre del expediente");
+
+            try {
+                const res = await apiFetch(`/crm/files/${currentFileDetailId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo guardar el expediente"));
+                await Promise.all([loadFiles(), loadAppointments(), loadReports()]);
+                await openFileDetailPanel(currentFileDetailId);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo guardar el expediente");
+            }
+        }
+
+        async function archiveFile(fileId, refreshDetail = false) {
+            try {
+                const res = await apiFetch(`/crm/files/${fileId}/archive`, { method: "PATCH" });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo archivar el expediente"));
+                await Promise.all([loadFiles(), loadAppointments(), loadReports()]);
+                if (refreshDetail && currentFileDetailId === fileId) {
+                    await openFileDetailPanel(fileId);
+                }
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo archivar el expediente");
+            }
+        }
+
+        async function restoreFile(fileId, refreshDetail = false) {
+            try {
+                const res = await apiFetch(`/crm/files/${fileId}/restore`, { method: "PATCH" });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo restaurar el expediente"));
+                await Promise.all([loadFiles(), loadAppointments(), loadReports()]);
+                if (refreshDetail && currentFileDetailId === fileId) {
+                    await openFileDetailPanel(fileId);
+                }
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo restaurar el expediente");
+            }
+        }
+
+        function closeFileDetailPanel() {
+            document.getElementById("file-detail-panel").classList.add("hidden");
+            currentFileDetailId = null;
+            currentFileDetailData = null;
+        }
+
+        async function loadAppointments() {
+            const list = document.getElementById("appointments-list");
+            list.innerHTML = '<tr><td class="px-4 py-3 text-gray-500">Cargando...</td></tr>';
+            try {
+                const res = await apiFetch("/crm/appointments");
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudieron cargar turnos"));
+                const data = await res.json();
+                const rows = (data.items || []).map((a) => `
+                    <tr style="border-left:4px solid ${getProfessionalColor(a.professional_id)}">
+                        <td class="px-4 py-3">
+                            <p>${new Date(a.starts_at).toLocaleString("es-AR")}</p>
+                            <p class="text-xs text-gray-500">${getProfessionalById(a.professional_id)?.name || "Profesional"}</p>
+                            <p class="text-xs text-gray-500">${filesById[a.subject_id]?.display_name || "Expediente"}</p>
+                        </td>
+                        <td class="px-4 py-3">${a.status || "-"}</td>
+                    </tr>
+                `).join("");
+                list.innerHTML = rows || '<tr><td class="px-4 py-3 text-gray-500">Sin turnos</td></tr>';
+            } catch (err) {
+                list.innerHTML = '<tr><td class="px-4 py-3 text-red-600">Error al cargar</td></tr>';
+                showGlobalError(err?.message || "No se pudieron cargar turnos");
+            }
+        }
+
+        function getSyncBadge(syncState) {
+            const map = {
+                synced: "bg-emerald-100 text-emerald-700",
+                pending: "bg-amber-100 text-amber-700",
+                failed: "bg-red-100 text-red-700",
+                disabled: "bg-gray-100 text-gray-700",
+                cancelled: "bg-gray-200 text-gray-700",
+            };
+            const css = map[String(syncState || "pending")] || "bg-gray-100 text-gray-700";
+            return `<span class="px-2 py-1 rounded text-xs font-semibold ${css}">${escapeHtml(syncState || "pending")}</span>`;
+        }
+
+        async function loadBookingAppointments() {
+            const list = document.getElementById("booking-appointments-list");
+            if (!list) return;
+
+            list.innerHTML = '<tr><td class="px-4 py-3 text-gray-500" colspan="5">Cargando...</td></tr>';
+            try {
+                const params = new URLSearchParams();
+                const fromDate = document.getElementById("booking-from-date")?.value;
+                const toDate = document.getElementById("booking-to-date")?.value;
+                const professionalId = document.getElementById("booking-professional-filter")?.value;
+                const statusValue = document.getElementById("booking-status-filter")?.value;
+
+                if (fromDate && toDate) {
+                    params.set("from_date", fromDate);
+                    params.set("to_date", toDate);
+                }
+                if (professionalId) params.set("professional_id", professionalId);
+                if (statusValue) params.set("status", statusValue);
+
+                const query = params.toString();
+                const res = await apiFetch(`/crm/appointments/booking${query ? `?${query}` : ""}`);
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudieron cargar turnos de booking"));
+                const data = await res.json();
+
+                bookingAppointmentsById = {};
+                (data.items || []).forEach((a) => {
+                    bookingAppointmentsById[a.id] = a;
+                });
+
+                const rows = (data.items || []).map((a) => {
+                    const syncState = a.booking_link?.sync_state || "pending";
+                    const googleEventId = a.booking_link?.google_event_id || "-";
+                    const fileName = filesById[a.subject_id]?.display_name || a.subject_name || "Expediente";
+                    const profName = getProfessionalById(a.professional_id)?.name || "Profesional";
+                    return `
+                        <tr style="border-left:4px solid ${getProfessionalColor(a.professional_id)}" class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <p>${new Date(a.starts_at).toLocaleString("es-AR")}</p>
+                                <p class="text-xs text-gray-500">${a.ends_at ? new Date(a.ends_at).toLocaleTimeString("es-AR") : ""}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="font-medium text-gray-800">${escapeHtml(fileName)}</p>
+                                <p class="text-xs text-gray-500">${escapeHtml(profName)}</p>
+                            </td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">${escapeHtml(a.status || "-")}</span></td>
+                            <td class="px-4 py-3">
+                                ${getSyncBadge(syncState)}
+                                <p class="text-xs text-gray-500 mt-1">Event: ${escapeHtml(googleEventId)}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="verifyBookingAppointment('${a.id}')" class="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200">Verificar</button>
+                                    <button onclick="openBookingRescheduleModal('${a.id}')" class="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200">Reprogramar</button>
+                                    <button onclick="cancelBookingAppointment('${a.id}')" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">Cancelar</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+                list.innerHTML = rows || '<tr><td class="px-4 py-3 text-gray-500" colspan="5">Sin turnos de auto-gestion</td></tr>';
+            } catch (err) {
+                list.innerHTML = '<tr><td class="px-4 py-3 text-red-600" colspan="5">Error al cargar</td></tr>';
+                showGlobalError(err?.message || "No se pudieron cargar turnos de booking");
+            }
+        }
+
+        function openBookingRescheduleModal(appointmentId) {
+            const appointment = bookingAppointmentsById[appointmentId];
+            if (!appointment) return;
+            currentBookingRescheduleId = appointmentId;
+            const input = document.getElementById("booking-reschedule-datetime");
+            if (input && appointment.starts_at) {
+                input.value = new Date(appointment.starts_at).toISOString().slice(0, 16);
+            }
+            document.getElementById("modal-booking-reschedule").classList.remove("hidden");
+        }
+
+        function closeBookingRescheduleModal() {
+            currentBookingRescheduleId = null;
+            document.getElementById("modal-booking-reschedule").classList.add("hidden");
+        }
+
+        async function verifyBookingAppointment(appointmentId) {
+            try {
+                const res = await apiFetch(`/crm/appointments/${appointmentId}/verify`, { method: "PATCH" });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo verificar el turno"));
+                await Promise.all([loadAppointments(), loadBookingAppointments()]);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo verificar el turno");
+            }
+        }
+
+        async function saveBookingReschedule() {
+            if (!currentBookingRescheduleId) return;
+            const appointment = bookingAppointmentsById[currentBookingRescheduleId];
+            const startsAtLocal = document.getElementById("booking-reschedule-datetime")?.value;
+            if (!appointment || !startsAtLocal) {
+                showGlobalError("Selecciona fecha y hora para reprogramar");
+                return;
+            }
+
+            const newStartsAt = new Date(startsAtLocal);
+            let durationMinutes = 30;
+            if (appointment.starts_at && appointment.ends_at) {
+                const prevStart = new Date(appointment.starts_at);
+                const prevEnd = new Date(appointment.ends_at);
+                durationMinutes = Math.max(1, Math.round((prevEnd - prevStart) / 60000));
+            }
+            const newEndsAt = new Date(newStartsAt.getTime() + durationMinutes * 60000);
+
+            try {
+                const res = await apiFetch(`/crm/appointments/${currentBookingRescheduleId}/reschedule`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        starts_at: newStartsAt.toISOString(),
+                        ends_at: newEndsAt.toISOString(),
+                    }),
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo reprogramar el turno"));
+                closeBookingRescheduleModal();
+                await Promise.all([loadAppointments(), loadBookingAppointments()]);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo reprogramar el turno");
+            }
+        }
+
+        async function cancelBookingAppointment(appointmentId) {
+            if (!confirm("Se cancelara el turno y se quitara del Google Calendar sincronizado. Deseas continuar?")) {
+                return;
+            }
+
+            try {
+                const res = await apiFetch(`/crm/appointments/${appointmentId}/cancel-with-sync`, { method: "PATCH" });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo cancelar el turno"));
+                await Promise.all([loadAppointments(), loadBookingAppointments()]);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo cancelar el turno");
+            }
+        }
+
+        async function loadReports() {
+            const list = document.getElementById("reports-list");
+            list.innerHTML = '<tr><td class="px-4 py-3 text-gray-500">Cargando...</td></tr>';
+            try {
+                const res = await apiFetch("/crm/visit-reports");
+                if (!res.ok) {
+                    throw new Error(await parseApiError(res, "No se pudieron cargar reportes"));
+                }
+                const data = await res.json();
+                const rows = (data.items || []).map((r) => `
+                    <tr>
+                        <td class="px-4 py-3">${new Date(r.occurred_at).toLocaleString("es-AR")}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:${getProfessionalColor(r.professional_id)}"></span>
+                                <span class="text-xs text-gray-500">${getProfessionalById(r.professional_id)?.name || "Profesional"}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-1">${filesById[r.subject_id]?.display_name || "Expediente"}</p>
+                            <p>${(r.summary || "").slice(0, 120)}</p>
+                        </td>
+                    </tr>
+                `).join("");
+                list.innerHTML = rows || '<tr><td class="px-4 py-3 text-gray-500">Sin reportes</td></tr>';
+            } catch (err) {
+                list.innerHTML = '<tr><td class="px-4 py-3 text-red-600">Error al cargar</td></tr>';
+                showGlobalError(err?.message || "No se pudieron cargar reportes");
+            }
+        }
+
+        function openProfessionalModal(professionalId = null) {
+            currentEditId.professional = professionalId;
+            const professional = professionalId ? getProfessionalById(professionalId) : null;
+            document.getElementById("prof-name").value = professional?.name || "";
+            document.getElementById("prof-specialty").value = professional?.specialty || "";
+            document.getElementById("prof-role").value = professional?.role_label || "";
+            document.getElementById("prof-color").value = isValidColor(professional?.calendar_color) ? professional.calendar_color : "#1d4ed8";
+            const googleBox = document.getElementById("professional-google-box");
+            if (professionalId) {
+                googleBox.classList.remove("hidden");
+                loadProfessionalGoogleSettings(professionalId);
+            } else {
+                googleBox.classList.add("hidden");
+                renderProfessionalGoogleState(null);
+                document.getElementById("prof-google-calendar-id").value = "";
+                document.getElementById("prof-google-sync-enabled").checked = false;
+            }
+            document.querySelector("#modal-professional h2").textContent = professionalId ? "Editar Profesional" : "Agregar Profesional";
+            document.getElementById("modal-professional").classList.remove("hidden");
+        }
+        function closeProfessionalModal() { document.getElementById("modal-professional").classList.add("hidden"); }
+
+        async function openFileModal(fileId = null) {
+            currentEditId.file = fileId;
+            const file = fileId ? filesById[fileId] : null;
+            document.getElementById("file-display-name").value = file?.display_name || "";
+            document.getElementById("file-subject-kind").value = file?.subject_kind || "client";
+            document.getElementById("file-email").value = file?.email || "";
+            document.getElementById("file-phone").value = file?.phone || "";
+            document.getElementById("file-document").value = file?.document_id || "";
+            document.getElementById("file-coverage-type").value = file?.coverage_type || "particular";
+            document.getElementById("file-coverage-name").value = file?.coverage_name || "";
+            document.getElementById("file-affiliate-number").value = file?.affiliate_number || "";
+            document.getElementById("file-notes").value = file?.notes || "";
+            await loadSelectOptions("file-professionals");
+            setMultiSelectValues("file-professionals", (file?.linked_professionals || []).map((p) => p.id));
+            document.querySelector("#modal-file h2").textContent = fileId ? "Editar Expediente" : "Nuevo Expediente";
+            document.getElementById("modal-file").classList.remove("hidden");
+        }
+        function closeFileModal() { document.getElementById("modal-file").classList.add("hidden"); }
+
+        async function loadSelectOptions(selectId) {
+            try {
+                if (selectId.includes("professional")) {
+                    const res = await apiFetch("/crm/professionals");
+                    const data = await res.json();
+                    document.getElementById(selectId).innerHTML = (data.items || []).map((p) => `<option value="${p.id}">[${isValidColor(p.calendar_color) ? p.calendar_color : "#1d4ed8"}] ${p.name}</option>`).join("");
+                } else {
+                    const res = await apiFetch("/crm/files");
+                    const data = await res.json();
+                    document.getElementById(selectId).innerHTML = (data.items || []).map((f) => `<option value="${f.id}">${f.display_name}</option>`).join("");
+                }
+            } catch {
+                document.getElementById(selectId).innerHTML = "";
+            }
+        }
+
+        function openAppointmentModal() {
+            loadSelectOptions("app-professional");
+            loadSelectOptions("app-file");
+            document.getElementById("app-datetime").value = "";
+            document.getElementById("app-title").value = "";
+            document.getElementById("app-location").value = "";
+            document.getElementById("app-professional").onchange = () => filterFileOptionsByProfessional("app-professional", "app-file");
+            setTimeout(() => filterFileOptionsByProfessional("app-professional", "app-file"), 0);
+            document.getElementById("modal-appointment").classList.remove("hidden");
+        }
+        function closeAppointmentModal() { document.getElementById("modal-appointment").classList.add("hidden"); }
+
+        function openReportModal() {
+            loadSelectOptions("rep-professional");
+            loadSelectOptions("rep-file");
+            document.getElementById("rep-datetime").value = "";
+            document.getElementById("rep-summary").value = "";
+            document.getElementById("rep-findings").value = "";
+            document.getElementById("rep-professional").onchange = () => filterFileOptionsByProfessional("rep-professional", "rep-file");
+            setTimeout(() => filterFileOptionsByProfessional("rep-professional", "rep-file"), 0);
+            document.getElementById("modal-report").classList.remove("hidden");
+        }
+        function closeReportModal() { document.getElementById("modal-report").classList.add("hidden"); }
+
+        function editProfessional(id) {
+            openProfessionalModal(id);
+        }
+
+        async function saveProfessional() {
+            const payload = {
+                name: document.getElementById("prof-name").value.trim(),
+                specialty: document.getElementById("prof-specialty").value.trim(),
+                role_label: document.getElementById("prof-role").value.trim(),
+                calendar_color: document.getElementById("prof-color").value
+            };
+            if (!payload.name) return showError("login-error", "Completa el nombre");
+
+            const method = currentEditId.professional ? "PATCH" : "POST";
+            const path = currentEditId.professional
+                ? `/crm/professionals/${currentEditId.professional}`
+                : "/crm/professionals";
+
+            try {
+                const res = await apiFetch(path, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo guardar el profesional"));
+                closeProfessionalModal();
+                await loadProfessionals();
+                await Promise.all([loadAppointments(), loadBookingAppointments(), loadReports(), loadFiles()]);
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo guardar el profesional");
+            }
+        }
+
+        async function saveFile() {
+            const payload = {
+                display_name: document.getElementById("file-display-name").value.trim(),
+                subject_kind: document.getElementById("file-subject-kind").value,
+                email: document.getElementById("file-email").value.trim(),
+                phone: document.getElementById("file-phone").value.trim(),
+                document_id: document.getElementById("file-document").value.trim(),
+                coverage_type: document.getElementById("file-coverage-type").value,
+                coverage_name: document.getElementById("file-coverage-name").value.trim(),
+                affiliate_number: document.getElementById("file-affiliate-number").value.trim(),
+                professional_ids: getMultiSelectValues("file-professionals"),
+                notes: document.getElementById("file-notes").value.trim()
+            };
+            if (!payload.display_name) return showError("login-error", "Completa el nombre");
+
+            const method = currentEditId.file ? "PATCH" : "POST";
+            const path = currentEditId.file ? `/crm/files/${currentEditId.file}` : "/crm/files";
+
+            try {
+                const res = await apiFetch(path, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await parseApiError(res, "No se pudo guardar el expediente"));
+                closeFileModal();
+                await Promise.all([loadFiles(), loadAppointments(), loadBookingAppointments(), loadReports()]);
+                if (currentFileDetailId && currentFileDetailId === currentEditId.file) {
+                    await openFileDetailPanel(currentFileDetailId);
+                }
+            } catch (err) {
+                showGlobalError(err?.message || "No se pudo guardar el expediente");
+            }
+        }
+
+        async function saveAppointment() {
+            const professional_id = document.getElementById("app-professional").value;
+            const subject_id = document.getElementById("app-file").value;
+            const starts_at = document.getElementById("app-datetime").value;
+            if (!professional_id || !subject_id || !starts_at) {
+                return showError("login-error", "Completa los campos requeridos");
+            }
+
+            const payload = {
+                professional_id,
+                subject_id,
+                starts_at: new Date(starts_at).toISOString(),
+                title: document.getElementById("app-title").value.trim(),
+                location: document.getElementById("app-location").value.trim()
+            };
+
+            try {
+                const res = await apiFetch("/crm/appointments", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error();
+                closeAppointmentModal();
+                await Promise.all([loadAppointments(), loadBookingAppointments()]);
+            } catch {
+                showError("login-error", "No se pudo guardar el turno");
+            }
+        }
+
+        async function saveReport() {
+            const professional_id = document.getElementById("rep-professional").value;
+            const subject_id = document.getElementById("rep-file").value;
+            const summary = document.getElementById("rep-summary").value.trim();
+            const occurred_at = document.getElementById("rep-datetime").value;
+            if (!professional_id || !subject_id || !summary) {
+                return showError("login-error", "Completa los campos requeridos");
+            }
+
+            const payload = {
+                professional_id,
+                subject_id,
+                summary,
+                findings: document.getElementById("rep-findings").value.trim(),
+                occurred_at: occurred_at ? new Date(occurred_at).toISOString() : new Date().toISOString()
+            };
+
+            try {
+                const res = await apiFetch("/crm/visit-reports", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error();
+                closeReportModal();
+                await loadReports();
+            } catch {
+                showError("login-error", "No se pudo guardar el reporte");
+            }
+        }
+
+        window.addEventListener("load", async () => {
+            if (token && await verifyToken()) {
+                showScreen("crm");
+                await loadCRM();
+            } else {
+                showScreen("login");
+            }
+
+            document.getElementById("login-password")?.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") login();
+            });
+        });
+    </script>
+</body>
+</html>

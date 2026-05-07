@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenciakaff | Control de asistencia, dashboard y analytics de ventas</title>
+    <meta
+      name="description"
+      content="Centraliza asistencia, operación y ventas en una sola plataforma con paneles en tiempo real, QR dinámico y analítica comercial para vender más y decidir mejor."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+          linear-gradient(180deg, #07111f 0%, #091521 48%, #07111f 100%);
+      }
+
+      .glass {
+        background: rgba(8, 15, 28, 0.72);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+
+      .grid-pattern {
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+    </style>
+  </head>
+  <body class="text-slate-100 antialiased">
+    <div class="fixed inset-0 pointer-events-none grid-pattern opacity-30"></div>
+
+    <main class="relative overflow-hidden">
+      <section class="mx-auto max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8 lg:pt-10">
+        <nav class="glass flex flex-col gap-4 rounded-3xl px-5 py-4 shadow-2xl shadow-slate-950/40 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950 font-black shadow-lg shadow-emerald-400/20">AK</div>
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-300/90">Agenciakaff</p>
+              <p class="text-sm text-slate-300">Asistencia, operación y ventas en una sola plataforma</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 text-sm">
+            <a href="#solucion" class="rounded-full border border-slate-700 px-4 py-2 text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/70">Solución</a>
+            <a href="/dashboard" class="rounded-full border border-slate-700 px-4 py-2 text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/70">Dashboard</a>
+            <a href="/sales-dashboard" class="rounded-full border border-slate-700 px-4 py-2 text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/70">Sales analytics</a>
+          </div>
+        </nav>
+
+        <div class="grid gap-10 pt-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200">
+              <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+              Sistema listo para equipos que necesitan control y ventas
+            </span>
+
+            <h1 class="mt-6 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-7xl">
+              Convertí la asistencia y los datos en una máquina de ventas.
+            </h1>
+
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
+              Centralizá el fichaje QR, el panel operativo y el análisis de ventas en una experiencia profesional que mejora el control interno y, al mismo tiempo, presenta tu negocio como una solución seria y escalable.
+            </p>
+
+            <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+              <a href="__WHATSAPP_URL__" class="inline-flex items-center justify-center rounded-2xl bg-emerald-400 px-6 py-3.5 font-semibold text-slate-950 shadow-lg shadow-emerald-400/25 transition hover:scale-[1.01] hover:bg-emerald-300">
+                Pedir demo por WhatsApp
+              </a>
+              <a href="/sales-dashboard" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/70 px-6 py-3.5 font-semibold text-white transition hover:border-slate-500 hover:bg-slate-800/80">
+                Ver sales analytics
+              </a>
+            </div>
+
+            <div class="mt-10 grid gap-4 sm:grid-cols-3">
+              <div class="glass rounded-2xl p-4">
+                <p class="text-3xl font-black text-white">+QR</p>
+                <p class="mt-1 text-sm text-slate-300">Control simple para equipos y sucursales</p>
+              </div>
+              <div class="glass rounded-2xl p-4">
+                <p class="text-3xl font-black text-white">24/7</p>
+                <p class="mt-1 text-sm text-slate-300">Panel disponible desde cualquier dispositivo</p>
+              </div>
+              <div class="glass rounded-2xl p-4">
+                <p class="text-3xl font-black text-white">+ROI</p>
+                <p class="mt-1 text-sm text-slate-300">Información útil para vender mejor y decidir rápido</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <div class="absolute -left-8 top-10 h-28 w-28 rounded-full bg-cyan-400/20 blur-3xl"></div>
+            <div class="absolute -right-4 bottom-0 h-36 w-36 rounded-full bg-emerald-400/20 blur-3xl"></div>
+            <div class="glass relative overflow-hidden rounded-[2rem] p-5 shadow-2xl shadow-slate-950/40">
+              <div class="flex items-center justify-between border-b border-slate-700/70 pb-4">
+                <div>
+                  <p class="text-sm text-slate-400">Vista general</p>
+                  <h2 class="text-xl font-bold text-white">Operación conectada</h2>
+                </div>
+                <span class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">Live</span>
+              </div>
+
+              <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl border border-slate-700/60 bg-slate-950/50 p-4">
+                  <p class="text-sm text-slate-400">Asistencia hoy</p>
+                  <p class="mt-2 text-3xl font-black text-white">98%</p>
+                  <p class="mt-2 text-sm text-slate-300">Registro ordenado, rápido y sin fricción para el equipo.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-700/60 bg-slate-950/50 p-4">
+                  <p class="text-sm text-slate-400">Ventas monitoreadas</p>
+                  <p class="mt-2 text-3xl font-black text-white">3 paneles</p>
+                  <p class="mt-2 text-sm text-slate-300">Resumen, gráficos e historial para entender qué está pasando.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-700/60 bg-slate-950/50 p-4">
+                  <p class="text-sm text-slate-400">QR dinámico</p>
+                  <p class="mt-2 text-3xl font-black text-white">1 minuto</p>
+                  <p class="mt-2 text-sm text-slate-300">El punto de acceso ideal para fichar y operar desde cualquier local.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-700/60 bg-gradient-to-br from-emerald-400/15 to-cyan-400/10 p-4">
+                  <p class="text-sm text-emerald-200">CTA comercial</p>
+                  <p class="mt-2 text-2xl font-bold text-white">Convierte visitas en leads</p>
+                  <p class="mt-2 text-sm text-slate-300">La landing presenta el valor antes del acceso privado.</p>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-4">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Rutas clave</p>
+                <div class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                  <a href="/app" class="rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-slate-200 transition hover:border-emerald-400/40 hover:bg-slate-800/80">Fichaje QR</a>
+                  <a href="/dashboard" class="rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-slate-200 transition hover:border-cyan-400/40 hover:bg-slate-800/80">Panel operativo</a>
+                  <a href="/sales-dashboard" class="rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-slate-200 transition hover:border-orange-400/40 hover:bg-slate-800/80">Analítica premium</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="solucion" class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-3">
+          <article class="glass rounded-3xl p-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-300">Asistencia</p>
+            <h3 class="mt-3 text-2xl font-bold text-white">Menos fricción, más control</h3>
+            <p class="mt-3 leading-7 text-slate-300">El equipo ficha con QR dinámico, el administrador ve el estado en tiempo real y cada registro queda listo para seguimiento operativo.</p>
+          </article>
+          <article class="glass rounded-3xl p-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">Dashboard</p>
+            <h3 class="mt-3 text-2xl font-bold text-white">Lectura inmediata del negocio</h3>
+            <p class="mt-3 leading-7 text-slate-300">Visualizá entradas del día, estado del equipo, movimientos y accesos administrativos con una interfaz clara para trabajar rápido.</p>
+          </article>
+          <article class="glass rounded-3xl p-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-orange-300">Sales analytics</p>
+            <h3 class="mt-3 text-2xl font-bold text-white">Más ventas, mejores decisiones</h3>
+            <p class="mt-3 leading-7 text-slate-300">Subí información comercial y obtené resumen, evolución, gráficos y comparativas para detectar oportunidades y acelerar cierres.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div class="glass rounded-3xl p-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Cómo se usa</p>
+            <h3 class="mt-3 text-3xl font-bold text-white">Un flujo pensado para vender y operar mejor</h3>
+            <div class="mt-6 space-y-4">
+              <div class="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4">
+                <p class="text-sm font-semibold text-emerald-300">1. Presentación</p>
+                <p class="mt-1 text-sm text-slate-300">La landing explica el valor de la plataforma y prepara al visitante para la demo.</p>
+              </div>
+              <div class="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4">
+                <p class="text-sm font-semibold text-cyan-300">2. Acceso operativo</p>
+                <p class="mt-1 text-sm text-slate-300">El personal entra por el flujo de fichaje y el administrador entra al dashboard privado.</p>
+              </div>
+              <div class="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-4">
+                <p class="text-sm font-semibold text-orange-300">3. Análisis comercial</p>
+                <p class="mt-1 text-sm text-slate-300">El módulo de ventas muestra comportamiento, rendimiento y tendencia para actuar con datos.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-6 sm:grid-cols-2">
+            <div class="glass rounded-3xl p-6">
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Beneficios</p>
+              <ul class="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+                <li>• Reduce tiempos manuales en asistencia y control.</li>
+                <li>• Presenta una marca más profesional frente al cliente.</li>
+                <li>• Convierte datos dispersos en paneles accionables.</li>
+                <li>• Facilita el cierre comercial con una demo clara.</li>
+              </ul>
+            </div>
+            <div class="glass rounded-3xl p-6">
+              <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Próximo paso</p>
+              <h3 class="mt-3 text-2xl font-bold text-white">Agendá una demo</h3>
+              <p class="mt-3 text-sm leading-7 text-slate-300">Mirá cómo se ve el producto por dentro y evaluá si encaja para tu operación, tus clientes y tu oferta comercial.</p>
+              <a href="__WHATSAPP_URL__" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300">
+                Quiero hablar por WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="border-t border-slate-800/80 bg-slate-950/35">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-slate-400 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <p>Agenciakaff · sistema de asistencia, dashboard y analítica de ventas.</p>
+          <div class="flex flex-wrap gap-4">
+            <a href="/app" class="hover:text-slate-200">Fichaje</a>
+            <a href="/dashboard" class="hover:text-slate-200">Dashboard</a>
+            <a href="/sales-dashboard" class="hover:text-slate-200">Sales analytics</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>

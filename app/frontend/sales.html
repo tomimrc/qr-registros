@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics - Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen overflow-x-hidden">
+
+    <!-- Screen: Login -->
+    <div id="screen-login" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md mx-4">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">📊 Sales Analytics</h1>
+                <p class="text-gray-500 text-sm">Módulo Premium de Análisis de Ventas</p>
+            </div>
+
+            <div id="login-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input id="login-email" type="email" placeholder="admin@empresa.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input id="login-password" type="password" placeholder="••••••••"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                </div>
+                <button onclick="login()"
+                    class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition-all">
+                    Acceder
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-400 text-center mt-6">
+                Si no tienes acceso a Sales Analytics, contacta con tu administrador.
+            </p>
+        </div>
+    </div>
+
+    <!-- Screen: Dashboard Premium -->
+    <div id="screen-dashboard" class="hidden">
+
+        <!-- Header -->
+        <nav class="bg-white shadow-sm px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">📊 Sales Analytics Premium</h1>
+                <p class="text-xs text-gray-400" id="admin-info"></p>
+            </div>
+            <button onclick="logout()"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium px-4 py-2 rounded-lg transition-all">
+                Salir
+            </button>
+        </nav>
+
+        <!-- Tabs -->
+        <div class="px-4 sm:px-6 pt-4">
+            <div class="flex gap-2 border-b border-gray-200 mb-6 flex-wrap">
+                <button onclick="showTab('tab-upload')" id="btn-tab-upload"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-orange-500 text-orange-600">
+                    📁 Subir CSV
+                </button>
+                <button onclick="showTab('tab-summary')" id="btn-tab-summary"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    📈 Resumen
+                </button>
+                <button onclick="showTab('tab-charts')" id="btn-tab-charts"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    📊 Gráficos
+                </button>
+                <button onclick="showTab('tab-history')" id="btn-tab-history"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    📜 Historial
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab: Upload CSV -->
+        <div id="tab-upload" class="px-4 sm:px-6 pb-6">
+            <div class="max-w-2xl">
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Cargar Archivo de Ventas</h2>
+                    
+                    <div id="upload-help" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-blue-800 mb-2"><strong>Formato esperado (CSV):</strong></p>
+                        <code class="text-xs bg-white p-2 rounded block overflow-x-auto text-gray-700">
+date,product,quantity,unit_price,total_amount,seller<br/>2026-04-01,Cerveza,10,100.00,1000.00,Juan<br/>2026-04-01,Hamburguesa,5,250.00,1250.00,
+                        </code>
+                        <p class="text-xs text-blue-700 mt-2">Columnas obligatorias: date (YYYY-MM-DD), product, quantity, unit_price, total_amount</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Archivo CSV</label>
+                            <input id="csv-file" type="file" accept=".csv" 
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mes que cubre (YYYY-MM-DD)</label>
+                            <input id="csv-month" type="date" 
+                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                        </div>
+
+                        <div id="upload-progress" class="hidden">
+                            <div class="bg-gray-200 rounded-lg h-2">
+                                <div id="progress-bar" class="bg-orange-600 h-2 rounded-lg transition-all" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Procesando...</p>
+                        </div>
+
+                        <div id="upload-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg text-sm"></div>
+                        <div id="upload-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg text-sm"></div>
+
+                        <button onclick="uploadCSV()"
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition-all">
+                            📤 Subir y Procesar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Errors detail if CSV had validation issues -->
+                <div id="csv-errors-list" class="hidden bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-md font-semibold text-gray-800 mb-4">Errores encontrados</h3>
+                    <div id="errors-content" class="space-y-2 max-h-64 overflow-y-auto text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Summary -->
+        <div id="tab-summary" class="hidden px-4 sm:px-6 pb-6">
+            <div class="max-w-4xl">
+                <div class="mb-3 flex gap-2 items-end flex-wrap">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-sm font-medium text-gray-700">Filtro de período</label>
+                            <button id="summary-range-toggle" type="button" onclick="toggleDateRangeMode('summary')"
+                                class="text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors">
+                                Usar fechas específicas
+                            </button>
+                        </div>
+
+                        <div id="summary-month-controls">
+                            <select id="summary-month"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"></select>
+                        </div>
+
+                        <div id="summary-range-controls" class="hidden grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input id="summary-from-date" type="date"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                            <input id="summary-to-date" type="date"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                        </div>
+                    </div>
+                    <button onclick="loadSummary()"
+                        class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition-all">
+                        Cargar
+                    </button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                        <p class="text-3xl font-bold text-orange-600" id="kpi-total">-</p>
+                        <p class="text-xs text-gray-500 mt-1">Ventas Totales</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                        <p class="text-3xl font-bold text-green-600" id="kpi-ticket">-</p>
+                        <p class="text-xs text-gray-500 mt-1">Ticket Promedio</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                        <p class="text-3xl font-bold text-blue-600" id="kpi-qty">-</p>
+                        <p class="text-xs text-gray-500 mt-1">Cantidad Vendida</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+                        <p class="text-3xl font-bold text-purple-600" id="kpi-count">-</p>
+                        <p class="text-xs text-gray-500 mt-1">Transacciones</p>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-md font-semibold text-gray-800 mb-4">Top 5 Productos</h3>
+                    <div id="top-products-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Charts -->
+        <div id="tab-charts" class="hidden px-4 sm:px-6 pb-6">
+            <div class="max-w-5xl">
+                <div class="mb-3 flex gap-2 items-end flex-wrap">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-sm font-medium text-gray-700">Filtro de período</label>
+                            <button id="charts-range-toggle" type="button" onclick="toggleDateRangeMode('charts')"
+                                class="text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors">
+                                Usar fechas específicas
+                            </button>
+                        </div>
+
+                        <div id="charts-month-controls">
+                            <select id="charts-month"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"></select>
+                        </div>
+
+                        <div id="charts-range-controls" class="hidden grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input id="charts-from-date" type="date"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                            <input id="charts-to-date" type="date"
+                                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                        </div>
+                    </div>
+                    <button onclick="loadCharts()"
+                        class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition-all">
+                        Cargar
+                    </button>
+                </div>
+
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button id="view-btn-overview" onclick="switchChartView('overview')"
+                        class="chart-view-btn bg-orange-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
+                        General
+                    </button>
+                    <button id="view-btn-evolution" onclick="switchChartView('evolution')"
+                        class="chart-view-btn bg-white text-gray-700 border border-gray-300 text-sm font-semibold px-3 py-1.5 rounded-lg">
+                        Evolucion
+                    </button>
+                    <button id="view-btn-products" onclick="switchChartView('products')"
+                        class="chart-view-btn bg-white text-gray-700 border border-gray-300 text-sm font-semibold px-3 py-1.5 rounded-lg">
+                        Productos
+                    </button>
+                    <button id="view-btn-heatmap" onclick="switchChartView('heatmap')"
+                        class="chart-view-btn bg-white text-gray-700 border border-gray-300 text-sm font-semibold px-3 py-1.5 rounded-lg">
+                        Heatmap semanal
+                    </button>
+                    <button id="view-btn-comparison" onclick="switchChartView('comparison')"
+                        class="chart-view-btn bg-white text-gray-700 border border-gray-300 text-sm font-semibold px-3 py-1.5 rounded-lg">
+                        Comparativa
+                    </button>
+                </div>
+
+                <div id="charts-panels-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Daily Sales Chart -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 id="chart-daily-title" class="text-md font-semibold text-gray-800 mb-4">Ventas Diarias</h3>
+                        <canvas id="chart-daily"></canvas>
+                    </div>
+
+                    <!-- Product Distribution Chart -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 id="chart-products-title" class="text-md font-semibold text-gray-800 mb-4">Distribucion por Producto</h3>
+                        <canvas id="chart-products"></canvas>
+                    </div>
+
+                    <div id="charts-comparison-panel" class="hidden bg-white rounded-xl shadow-sm p-4">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="text-sm font-semibold text-gray-800">Comparativa</h3>
+                            <button id="comparison-manual-toggle" type="button" onclick="toggleComparisonManualMode()"
+                                class="text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors">
+                                Comparar 2 rangos
+                            </button>
+                        </div>
+                        <p id="comparison-mode-hint" class="text-xs text-gray-500 mb-3"></p>
+
+                        <div id="comparison-manual-controls" class="hidden space-y-2 mb-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input id="compare-a-from" type="date" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                                <input id="compare-a-to" type="date" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input id="compare-b-from" type="date" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                                <input id="compare-b-to" type="date" class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                            </div>
+                        </div>
+
+                        <div id="comparison-content" class="text-sm text-gray-700"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: History -->
+        <div id="tab-history" class="hidden px-4 sm:px-6 pb-6">
+            <div class="max-w-4xl">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Historial de Importaciones</h2>
+                
+                <div id="uploads-list" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-force-password" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70] px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-2">Cambio de contraseña obligatorio</h2>
+            <p class="text-sm text-gray-500 mb-4">Para acceder a Sales Analytics debes cambiar tu contraseña temporal.</p>
+
+            <div id="force-password-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-3 text-sm"></div>
+            <div id="force-password-success" class="hidden bg-green-100 text-green-700 p-3 rounded-lg mb-3 text-sm"></div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+                    <input id="force-current-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                    <input id="force-new-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Repetir nueva contraseña</label>
+                    <input id="force-confirm-password" type="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"/>
+                </div>
+                <button id="force-password-btn" onclick="submitForcedPasswordChange()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition-all">
+                    Guardar nueva contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Delete -->
+    <div id="modal-confirm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <p class="text-2xl mb-2">⚠️</p>
+            <h2 class="text-lg font-bold text-gray-800 mb-2">¿Estás seguro?</h2>
+            <p class="text-gray-500 text-sm mb-6" id="confirm-message">Esta acción no se puede deshacer.</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 rounded-xl">Cancelar</button>
+                <button id="confirm-btn" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-xl">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('admin_token');
+        let currentAdminData = null;
+        let confirmCallback = null;
+        let isPasswordChangeRequired = false;
+
+        // Chart instances
+        let chartDaily = null;
+        let chartProducts = null;
+        let summaryUseDateRange = false;
+        let chartsUseDateRange = false;
+        let currentChartView = 'overview';
+        let comparisonManualMode = false;
+        const RECENT_MONTHS_COUNT = 12;
+
+        function formatMonthValue(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}-01`;
+        }
+
+        function normalizeMonthValue(monthValue) {
+            if (!monthValue) {
+                return '';
+            }
+            return monthValue.length === 7 ? `${monthValue}-01` : monthValue;
+        }
+
+        function formatMonthOptionLabel(monthValue) {
+            const normalizedValue = normalizeMonthValue(monthValue);
+            if (!normalizedValue) {
+                return '';
+            }
+
+            const [year, month] = normalizedValue.split('-').map(Number);
+            const dt = new Date(year, month - 1, 1);
+            const label = dt.toLocaleDateString('es-AR', {
+                month: 'long',
+                year: 'numeric'
+            });
+            return label.charAt(0).toUpperCase() + label.slice(1);
+        }
+
+        function buildRecentMonthValues(monthCount = RECENT_MONTHS_COUNT) {
+            const values = [];
+            const current = new Date();
+            current.setDate(1);
+
+            for (let offset = 0; offset < monthCount; offset += 1) {
+                const candidate = new Date(current.getFullYear(), current.getMonth() - offset, 1);
+                values.push(formatMonthValue(candidate));
+            }
+
+            return values;
+        }
+
+        function populateMonthSelect(section, selectedMonthValue) {
+            const select = document.getElementById(`${section}-month`);
+            if (!select) {
+                return;
+            }
+
+            const normalizedSelected = normalizeMonthValue(selectedMonthValue) || formatMonthValue(new Date());
+            const monthValues = buildRecentMonthValues();
+
+            if (!monthValues.includes(normalizedSelected)) {
+                monthValues.unshift(normalizedSelected);
+            }
+
+            select.innerHTML = monthValues.map(monthValue => {
+                const selectedAttr = monthValue === normalizedSelected ? ' selected' : '';
+                return `<option value="${monthValue}"${selectedAttr}>${formatMonthOptionLabel(monthValue)}</option>`;
+            }).join('');
+
+            select.value = normalizedSelected;
+        }
+
+        function ensureMonthOption(section, monthValue) {
+            const select = document.getElementById(`${section}-month`);
+            const normalizedMonthValue = normalizeMonthValue(monthValue);
+            if (!select || !normalizedMonthValue) {
+                return;
+            }
+
+            const existingOption = Array.from(select.options).find(option => option.value === normalizedMonthValue);
+            if (existingOption) {
+                return;
+            }
+
+            const option = document.createElement('option');
+            option.value = normalizedMonthValue;
+            option.textContent = formatMonthOptionLabel(normalizedMonthValue);
+            select.prepend(option);
+        }
+
+        function formatDateInputValue(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function initializeComparisonManualDates(today) {
+            const now = today || new Date();
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+            document.getElementById('compare-a-from').value = formatDateInputValue(currentMonthStart);
+            document.getElementById('compare-a-to').value = formatDateInputValue(now);
+            document.getElementById('compare-b-from').value = formatDateInputValue(previousMonthStart);
+            document.getElementById('compare-b-to').value = formatDateInputValue(previousMonthEnd);
+        }
+
+        function syncComparisonPanelState() {
+            const panel = document.getElementById('charts-comparison-panel');
+            const grid = document.getElementById('charts-panels-grid');
+            const hint = document.getElementById('comparison-mode-hint');
+            const toggle = document.getElementById('comparison-manual-toggle');
+            const manualControls = document.getElementById('comparison-manual-controls');
+
+            if (currentChartView === 'comparison') {
+                panel.classList.remove('hidden');
+                grid.classList.remove('lg:grid-cols-2');
+                grid.classList.add('lg:grid-cols-3');
+                manualControls.classList.toggle('hidden', !comparisonManualMode);
+                toggle.textContent = comparisonManualMode
+                    ? 'Usar comparacion automatica'
+                    : 'Comparar 2 rangos';
+                hint.textContent = comparisonManualMode
+                    ? 'Modo manual: Rango A vs Rango B.'
+                    : 'Modo automatico: periodo seleccionado vs periodo anterior equivalente.';
+            } else {
+                panel.classList.add('hidden');
+                manualControls.classList.add('hidden');
+                grid.classList.remove('lg:grid-cols-3');
+                grid.classList.add('lg:grid-cols-2');
+            }
+        }
+
+        function toggleComparisonManualMode() {
+            if (currentChartView !== 'comparison') {
+                return;
+            }
+            comparisonManualMode = !comparisonManualMode;
+            syncComparisonPanelState();
+            loadCharts();
+        }
+
+        function buildManualComparisonQuery() {
+            const compareAFrom = document.getElementById('compare-a-from').value;
+            const compareATo = document.getElementById('compare-a-to').value;
+            const compareBFrom = document.getElementById('compare-b-from').value;
+            const compareBTo = document.getElementById('compare-b-to').value;
+
+            if (!compareAFrom || !compareATo || !compareBFrom || !compareBTo) {
+                alert('Completa las 4 fechas para comparar dos rangos');
+                return null;
+            }
+
+            if (compareAFrom > compareATo) {
+                alert('En rango A, la fecha desde no puede ser mayor que la fecha hasta');
+                return null;
+            }
+
+            if (compareBFrom > compareBTo) {
+                alert('En rango B, la fecha desde no puede ser mayor que la fecha hasta');
+                return null;
+            }
+
+            return [
+                'compare_mode=manual',
+                `compare_a_from=${encodeURIComponent(compareAFrom)}`,
+                `compare_a_to=${encodeURIComponent(compareATo)}`,
+                `compare_b_from=${encodeURIComponent(compareBFrom)}`,
+                `compare_b_to=${encodeURIComponent(compareBTo)}`,
+            ].join('&');
+        }
+
+        // =============================================
+        // INIT & AUTH
+        // =============================================
+        async function init() {
+            if (token) {
+                const ok = await verifyToken();
+                if (ok) {
+                    showDashboard();
+                    // Defaul to today's month
+                    const today = new Date();
+                    const monthStr = formatMonthValue(today);
+                    populateMonthSelect('summary', monthStr);
+                    populateMonthSelect('charts', monthStr);
+                    initializeComparisonManualDates(today);
+                    document.getElementById('summary-from-date').value = monthStr;
+                    document.getElementById('summary-to-date').value = today.toISOString().split('T')[0];
+                    document.getElementById('charts-from-date').value = monthStr;
+                    document.getElementById('charts-to-date').value = today.toISOString().split('T')[0];
+                    document.getElementById('csv-month').value = monthStr;
+                    return;
+                }
+            }
+            showLogin();
+        }
+
+        async function verifyToken() {
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    currentAdminData = await res.json();
+                    isPasswordChangeRequired = !!currentAdminData.must_change_password;
+                    return true;
+                }
+                if (res.status === 401) localStorage.removeItem('admin_token');
+            } catch {}
+            return false;
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    token = data.access_token;
+                    localStorage.setItem('admin_token', token);
+                    currentAdminData = {
+                        nombre: data.admin_name,
+                        tenant_id: data.tenant_id,
+                        must_change_password: !!data.must_change_password,
+                    };
+                    isPasswordChangeRequired = !!data.must_change_password;
+                    showDashboard();
+                    init();
+                } else {
+                    errorEl.textContent = data.detail || 'Error al iniciar sesión';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch {
+                errorEl.textContent = 'Error de conexión. Verifica que el servidor esté activo.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            token = null;
+            isPasswordChangeRequired = false;
+            showLogin();
+        }
+
+        function showForcedPasswordModal() {
+            document.getElementById('modal-force-password').classList.remove('hidden');
+            document.getElementById('force-password-error').classList.add('hidden');
+            document.getElementById('force-password-success').classList.add('hidden');
+        }
+
+        function hideForcedPasswordModal() {
+            document.getElementById('modal-force-password').classList.add('hidden');
+            document.getElementById('force-current-password').value = '';
+            document.getElementById('force-new-password').value = '';
+            document.getElementById('force-confirm-password').value = '';
+        }
+
+        async function submitForcedPasswordChange() {
+            const currentPassword = document.getElementById('force-current-password').value;
+            const newPassword = document.getElementById('force-new-password').value;
+            const confirmPassword = document.getElementById('force-confirm-password').value;
+            const errorEl = document.getElementById('force-password-error');
+            const successEl = document.getElementById('force-password-success');
+            const btn = document.getElementById('force-password-btn');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                errorEl.textContent = 'Completa todos los campos';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                errorEl.textContent = 'La nueva contraseña debe tener al menos 8 caracteres';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                errorEl.textContent = 'La confirmación no coincide';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            try {
+                const res = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                    }),
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.detail || 'No se pudo cambiar la contraseña';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                isPasswordChangeRequired = false;
+                if (currentAdminData) {
+                    currentAdminData.must_change_password = false;
+                }
+
+                successEl.textContent = 'Contraseña actualizada. Ya puedes continuar.';
+                successEl.classList.remove('hidden');
+                setTimeout(() => {
+                    hideForcedPasswordModal();
+                    loadSummary();
+                    loadCharts();
+                    loadUploadsHistory();
+                }, 700);
+            } catch (err) {
+                errorEl.textContent = `Error de conexión: ${err.message}`;
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar nueva contraseña';
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('screen-login').classList.remove('hidden');
+            document.getElementById('screen-dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-dashboard').classList.remove('hidden');
+            document.getElementById('admin-info').textContent = `Hola, ${currentAdminData.nombre}`;
+
+            if (currentAdminData?.must_change_password || isPasswordChangeRequired) {
+                isPasswordChangeRequired = true;
+                showForcedPasswordModal();
+                return;
+            }
+
+            hideForcedPasswordModal();
+        }
+
+        // =============================================
+        // TAB MANAGEMENT
+        // =============================================
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            
+            // Remove active border from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-orange-500', 'text-orange-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Show selected tab
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Add active border
+            const btnId = `btn-${tabId}`;
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.classList.add('border-orange-500', 'text-orange-600');
+                btn.classList.remove('border-transparent', 'text-gray-500');
+            }
+
+            if (tabId === 'tab-history') {
+                loadUploadsHistory();
+            }
+        }
+
+        function switchChartView(view) {
+            currentChartView = view;
+            document.querySelectorAll('.chart-view-btn').forEach(btn => {
+                btn.classList.remove('bg-orange-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+            });
+
+            const active = document.getElementById(`view-btn-${view}`);
+            if (active) {
+                active.classList.add('bg-orange-600', 'text-white');
+                active.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+            }
+
+            syncComparisonPanelState();
+            loadCharts();
+        }
+
+        function formatMonthLabel(monthValue) {
+            const normalizedValue = normalizeMonthValue(monthValue);
+            if (!normalizedValue) {
+                return '';
+            }
+            const [year, month] = normalizedValue.split('-').map(Number);
+            const dt = new Date(year, month - 1, 1);
+            const label = dt.toLocaleDateString('es-AR', {
+                month: 'short',
+                year: 'numeric'
+            });
+            return label.charAt(0).toUpperCase() + label.slice(1);
+        }
+
+        function loadMonth(month) {
+            setDateRangeMode('summary', false);
+            const normalizedMonth = normalizeMonthValue(month);
+            if (!normalizedMonth) {
+                return;
+            }
+            ensureMonthOption('summary', normalizedMonth);
+            document.getElementById('summary-month').value = normalizedMonth;
+            showTab('tab-summary');
+            loadSummary();
+        }
+
+        function setDateRangeMode(section, enabled) {
+            const isSummary = section === 'summary';
+            const toggle = document.getElementById(`${section}-range-toggle`);
+            const monthControls = document.getElementById(`${section}-month-controls`);
+            const rangeControls = document.getElementById(`${section}-range-controls`);
+
+            if (isSummary) {
+                summaryUseDateRange = enabled;
+            } else {
+                chartsUseDateRange = enabled;
+            }
+
+            if (enabled) {
+                monthControls.classList.add('hidden');
+                rangeControls.classList.remove('hidden');
+                toggle.textContent = 'Usar filtro mensual';
+                toggle.classList.remove('bg-orange-50', 'text-orange-700', 'border-orange-200');
+                toggle.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300');
+            } else {
+                monthControls.classList.remove('hidden');
+                rangeControls.classList.add('hidden');
+                toggle.textContent = 'Usar fechas específicas';
+                toggle.classList.remove('bg-gray-100', 'text-gray-700', 'border-gray-300');
+                toggle.classList.add('bg-orange-50', 'text-orange-700', 'border-orange-200');
+            }
+        }
+
+        function toggleDateRangeMode(section) {
+            const enabled = section === 'summary' ? !summaryUseDateRange : !chartsUseDateRange;
+            setDateRangeMode(section, enabled);
+        }
+
+        function buildPeriodQuery(section) {
+            const useDateRange = section === 'summary' ? summaryUseDateRange : chartsUseDateRange;
+            if (!useDateRange) {
+                const month = document.getElementById(`${section}-month`).value;
+                if (!month) {
+                    alert('Selecciona un mes para continuar');
+                    return null;
+                }
+                return `month=${encodeURIComponent(month)}`;
+            }
+
+            const fromDate = document.getElementById(`${section}-from-date`).value;
+            const toDate = document.getElementById(`${section}-to-date`).value;
+
+            if (!fromDate || !toDate) {
+                alert('Completa ambas fechas para filtrar por rango');
+                return null;
+            }
+
+            if (fromDate > toDate) {
+                alert('La fecha desde no puede ser mayor que la fecha hasta');
+                return null;
+            }
+
+            return `from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}`;
+        }
+
+        // =============================================
+        // CSV UPLOAD
+        // =============================================
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csv-file');
+            const monthInput = document.getElementById('csv-month');
+            const errorEl = document.getElementById('upload-error');
+            const successEl = document.getElementById('upload-success');
+            const progressEl = document.getElementById('upload-progress');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+            progressEl.classList.add('hidden');
+
+            if (!fileInput.files.length) {
+                errorEl.textContent = 'Por favor selecciona un archivo CSV';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (!monthInput.value) {
+                errorEl.textContent = 'Por favor selecciona el mes';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            progressEl.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('period_month', monthInput.value);
+
+                const res = await fetch(`${API_URL}/sales/uploads?period_month=${monthInput.value}`, {
+                    method: 'POST',
+                    headers: { "Authorization": `Bearer ${token}` },
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorEl.textContent = data.detail || 'Error al procesar archivo';
+                    errorEl.classList.remove('hidden');
+                    progressEl.classList.add('hidden');
+                    return;
+                }
+
+                // Success
+                const coveredMonths = Array.isArray(data.covered_months) ? data.covered_months : [];
+                const monthsHtml = coveredMonths.length
+                    ? `<div class="mt-3"><p class="text-xs text-gray-600 mb-2">Meses detectados en el CSV:</p><div class="flex flex-wrap gap-2">${coveredMonths.map(month => `<button type="button" onclick="loadMonth('${month}')" class="px-3 py-1.5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold hover:bg-orange-100 transition-colors">${formatMonthLabel(month)}</button>`).join('')}</div></div>`
+                    : '';
+
+                successEl.innerHTML = `
+                    ✓ Archivo procesado exitosamente<br/>
+                    <strong>${data.rows_imported}</strong> filas importadas de ${data.rows_total}
+                    ${monthsHtml}
+                `;
+                successEl.classList.remove('hidden');
+
+                // Show errors if any
+                if (data.errors && data.errors.length > 0) {
+                    const errorsList = document.getElementById('errors-content');
+                    errorsList.innerHTML = data.errors.slice(0, 10).map(err => 
+                        `<div class="text-gray-700">Fila ${err.row}: ${err.error}</div>`
+                    ).join('');
+                    if (data.errors.length > 10) {
+                        errorsList.innerHTML += `<div class="text-gray-500 italic">... y ${data.errors.length - 10} errores más</div>`;
+                    }
+                    document.getElementById('csv-errors-list').classList.remove('hidden');
+                }
+
+                fileInput.value = '';
+                progressEl.classList.add('hidden');
+
+                // Reload history
+                loadUploadsHistory();
+            } catch (err) {
+                errorEl.textContent = `Error: ${err.message}`;
+                errorEl.classList.remove('hidden');
+                progressEl.classList.add('hidden');
+            }
+        }
+
+        // =============================================
+        // SUMMARY
+        // =============================================
+        async function loadSummary() {
+            const query = buildPeriodQuery('summary');
+            if (!query) return;
+
+            try {
+                const res = await fetch(`${API_URL}/sales/summary?${query}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        alert('Tu plan Sales Analytics no está activo');
+                    }
+                    return;
+                }
+
+                const data = await res.json();
+
+                // Update KPIs
+                document.getElementById('kpi-total').textContent = `$${data.total_sales.toFixed(2)}`;
+                document.getElementById('kpi-ticket').textContent = `$${data.avg_ticket.toFixed(2)}`;
+                document.getElementById('kpi-qty').textContent = data.quantity_sold.toFixed(0);
+                document.getElementById('kpi-count').textContent = data.transaction_count;
+
+                // Update top products
+                const list = document.getElementById('top-products-list');
+                list.innerHTML = data.top_products.map(p => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-800">${p.product}</p>
+                            <p class="text-xs text-gray-500">${p.count} transacciones</p>
+                        </div>
+                        <p class="font-bold text-orange-600">$${p.sales.toFixed(2)}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            }
+        }
+
+        // =============================================
+        // CHARTS
+        // =============================================
+        async function loadCharts() {
+            const baseQuery = buildPeriodQuery('charts');
+            if (!baseQuery) return;
+
+            const queryParts = [baseQuery, `view=${encodeURIComponent(currentChartView)}`];
+
+            if (currentChartView === 'comparison') {
+                if (comparisonManualMode) {
+                    const manualQuery = buildManualComparisonQuery();
+                    if (!manualQuery) return;
+                    queryParts.push(manualQuery);
+                } else {
+                    queryParts.push('compare_mode=auto');
+                }
+            }
+
+            const query = queryParts.join('&');
+            syncComparisonPanelState();
+
+            try {
+                const res = await fetch(`${API_URL}/sales/charts?${query}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        alert('Tu plan Sales Analytics no está activo');
+                    }
+                    return;
+                }
+
+                const data = await res.json();
+
+                // Daily sales chart
+                if (chartDaily) chartDaily.destroy();
+                const ctxDaily = document.getElementById('chart-daily').getContext('2d');
+                document.getElementById('chart-daily-title').textContent = currentChartView === 'evolution'
+                    ? 'Evolucion diaria detallada'
+                    : 'Ventas Diarias';
+
+                let dailyDatasets = [{
+                    label: 'Ventas',
+                    data: data.daily_sales.map(d => d.sales),
+                    borderColor: '#ea580c',
+                    backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y'
+                }];
+                let dailyLabels = data.daily_sales.map(d => d.date);
+
+                if (data.daily_evolution && currentChartView === 'evolution') {
+                    dailyLabels = data.daily_evolution.dates || [];
+                    dailyDatasets = [
+                        {
+                            label: 'Ventas',
+                            data: data.daily_evolution.sales || [],
+                            borderColor: '#ea580c',
+                            backgroundColor: 'rgba(234, 88, 12, 0.08)',
+                            tension: 0.35,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Cantidad',
+                            data: data.daily_evolution.quantity || [],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                            tension: 0.35,
+                            fill: false,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Transacciones',
+                            data: data.daily_evolution.transactions || [],
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.08)',
+                            tension: 0.35,
+                            fill: false,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Ticket promedio',
+                            data: data.daily_evolution.avg_ticket || [],
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                            tension: 0.35,
+                            fill: false,
+                            yAxisID: 'y'
+                        }
+                    ];
+                }
+
+                chartDaily = new Chart(ctxDaily, {
+                    type: 'line',
+                    data: {
+                        labels: dailyLabels,
+                        datasets: dailyDatasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: true } },
+                        scales: {
+                            y: { beginAtZero: true, position: 'left' },
+                            y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+
+                // Product distribution chart
+                if (chartProducts) chartProducts.destroy();
+                const ctxProducts = document.getElementById('chart-products').getContext('2d');
+
+                let productType = 'doughnut';
+                let productLabels = data.product_distribution.map(p => p.product);
+                let productValues = data.product_distribution.map(p => p.sales);
+                let productTitle = 'Distribucion por Producto';
+
+                if (currentChartView === 'products' && Array.isArray(data.top_products_quantity)) {
+                    productType = 'bar';
+                    productLabels = data.top_products_quantity.map(p => p.product);
+                    productValues = data.top_products_quantity.map(p => p.quantity);
+                    productTitle = 'Top productos por cantidad';
+                }
+
+                if (currentChartView === 'heatmap' && data.weekday_distribution) {
+                    productType = 'bar';
+                    productLabels = data.weekday_distribution.labels || [];
+                    productValues = data.weekday_distribution.sales || [];
+                    productTitle = 'Ventas por dia de semana';
+                }
+
+                document.getElementById('chart-products-title').textContent = productTitle;
+
+                chartProducts = new Chart(ctxProducts, {
+                    type: productType,
+                    data: {
+                        labels: productLabels,
+                        datasets: [{
+                            label: productTitle,
+                            data: productValues,
+                            backgroundColor: [
+                                '#ea580c', '#f97316', '#fb923c', '#fbbf24', '#fcd34d',
+                                '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#1d4ed8'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: productType === 'bar' ? { y: { beginAtZero: true } } : {}
+                    }
+                });
+
+                if (currentChartView === 'comparison' && data.period_comparison) {
+                    const changes = data.period_comparison.changes || {};
+                    const current = data.period_comparison.current_period || {};
+                    const previous = data.period_comparison.previous_period || {};
+                    const labels = data.period_comparison.labels || {};
+                    const currentLabel = labels.current || 'Periodo actual';
+                    const previousLabel = labels.previous || 'Periodo anterior';
+                    const fmtChange = (value) => value === null || value === undefined
+                        ? 'N/A'
+                        : `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+
+                    document.getElementById('comparison-content').innerHTML = `
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="p-2.5 rounded-lg bg-gray-50">
+                                <p class="text-xs text-gray-500 mb-1">${currentLabel} (${current.start || '-'} a ${current.end || '-'})</p>
+                                <p>Ventas: <strong>$${Number(current.total_sales || 0).toFixed(2)}</strong></p>
+                                <p>Cantidad: <strong>${Number(current.quantity_sold || 0).toFixed(2)}</strong></p>
+                                <p>Transacciones: <strong>${Number(current.transaction_count || 0)}</strong></p>
+                                <p>Ticket promedio: <strong>$${Number(current.avg_ticket || 0).toFixed(2)}</strong></p>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-gray-50">
+                                <p class="text-xs text-gray-500 mb-1">${previousLabel} (${previous.start || '-'} a ${previous.end || '-'})</p>
+                                <p>Ventas: <strong>$${Number(previous.total_sales || 0).toFixed(2)}</strong></p>
+                                <p>Cantidad: <strong>${Number(previous.quantity_sold || 0).toFixed(2)}</strong></p>
+                                <p>Transacciones: <strong>${Number(previous.transaction_count || 0)}</strong></p>
+                                <p>Ticket promedio: <strong>$${Number(previous.avg_ticket || 0).toFixed(2)}</strong></p>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2.5 rounded-lg border border-gray-200 text-sm">
+                            <p>Variacion ventas: <strong>${fmtChange(changes.total_sales_pct)}</strong></p>
+                            <p>Variacion cantidad: <strong>${fmtChange(changes.quantity_sold_pct)}</strong></p>
+                            <p>Variacion transacciones: <strong>${fmtChange(changes.transaction_count_pct)}</strong></p>
+                            <p>Variacion ticket promedio: <strong>${fmtChange(changes.avg_ticket_pct)}</strong></p>
+                        </div>
+                    `;
+                } else if (currentChartView === 'comparison') {
+                    document.getElementById('comparison-content').innerHTML = '<p class="text-gray-500">No hay datos para la comparación seleccionada.</p>';
+                }
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            }
+        }
+
+        function bindEnterKey(targetIds, action) {
+            targetIds.forEach((id) => {
+                const element = document.getElementById(id);
+                if (!element) return;
+                element.addEventListener('keydown', (event) => {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    action();
+                });
+            });
+        }
+
+        function bindSalesEnterKeys() {
+            bindEnterKey(['login-email', 'login-password'], login);
+            bindEnterKey(['csv-file', 'csv-month'], uploadCSV);
+            bindEnterKey(['summary-month', 'summary-from-date', 'summary-to-date'], loadSummary);
+            bindEnterKey(['charts-month', 'charts-from-date', 'charts-to-date'], loadCharts);
+        }
+
+        // =============================================
+        // HISTORY
+        // =============================================
+        async function loadUploadsHistory() {
+            const list = document.getElementById('uploads-list');
+            try {
+                const res = await fetch(`${API_URL}/sales/uploads?limit=20`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        list.innerHTML = '<p class="text-red-600">Sesion expirada. Vuelve a iniciar sesion.</p>';
+                        logout();
+                        return;
+                    }
+                    if (res.status === 403) {
+                        list.innerHTML = '<p class="text-red-600">Tu suscripcion de Sales Analytics no esta activa.</p>';
+                        return;
+                    }
+                    list.innerHTML = `<p class="text-red-600">Error al cargar historial (${res.status}).</p>`;
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.uploads.length === 0) {
+                    list.innerHTML = '<p class="text-gray-500">No hay importaciones aún</p>';
+                    return;
+                }
+
+                list.innerHTML = data.uploads.map(u => `
+                    <div class="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+                        <div>
+                            <p class="font-medium text-gray-800">${u.filename}</p>
+                            <p class="text-xs text-gray-500">${Number(u.rows_imported) || 0} / ${Number(u.rows_total) || 0} filas · $${(Number(u.total_sales) || 0).toFixed(2)} · ${u.period}</p>
+                        </div>
+                        <button onclick="confirmDelete('${u.id}')" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                            🗑️ Borrar
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = `<p class="text-red-600">Error de conexion al cargar historial: ${err.message}</p>`;
+            }
+        }
+
+        function confirmDelete(uploadId) {
+            const modal = document.getElementById('modal-confirm');
+            const message = document.getElementById('confirm-message');
+            const btn = document.getElementById('confirm-btn');
+
+            message.textContent = '¿Borrar esta importación? No se puede deshacer.';
+            modal.classList.remove('hidden');
+
+            confirmCallback = async () => {
+                try {
+                    const res = await fetch(`${API_URL}/sales/uploads/${uploadId}`, {
+                        method: 'DELETE',
+                        headers: { "Authorization": `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        loadUploadsHistory();
+                        closeConfirm();
+                    } else {
+                        alert('Error al borrar');
+                    }
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                }
+            };
+
+            btn.onclick = confirmCallback;
+        }
+
+        function closeConfirm() {
+            document.getElementById('modal-confirm').classList.add('hidden');
+            confirmCallback = null;
+        }
+
+        // =============================================
+        // ON LOAD
+        // =============================================
+        window.addEventListener('load', () => {
+            bindSalesEnterKeys();
+            init();
+            setTimeout(() => {
+                if (token) loadUploadsHistory();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

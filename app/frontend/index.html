@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fichar Asistencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen overflow-x-hidden px-4 py-6">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">
+        Sistema de Asistencia
+      </h1>
+      <p id="subtitle" class="text-gray-500 mb-6">Verificando dispositivo...</p>
+
+      <!-- Mensajes de estado (éxito/error) -->
+      <div
+        id="status-card"
+        class="hidden mb-6 p-4 rounded-lg text-sm font-medium"
+      ></div>
+
+      <!-- ============================================ -->
+      <!-- PANTALLA 1: Error - No hay tenant_id en URL  -->
+      <!-- Se muestra si alguien abre la página sin QR  -->
+      <!-- ============================================ -->
+      <div id="screen-no-tenant" class="hidden">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+          <p class="text-yellow-700 text-lg font-semibold mb-2">
+            📱 Escaneá el QR del local
+          </p>
+          <p class="text-yellow-600 text-sm">
+            Para fichar, necesitás escanear el código QR que está en tu lugar de
+            trabajo.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- PANTALLA 2: Vinculación (primer escaneo)     -->
+      <!-- Muestra lista de empleados sin dispositivo   -->
+      <!-- ============================================ -->
+      <div id="screen-link" class="hidden">
+        <p class="text-gray-600 mb-4">
+          Es tu primera vez. Seleccioná tu nombre:
+        </p>
+
+        <!-- Acá se cargan los empleados dinámicamente -->
+        <div id="employee-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+          <!-- Se llena con JavaScript -->
+        </div>
+
+        <button
+          onclick="linkDevice()"
+          id="btn-link"
+          disabled
+          class="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white font-bold py-4 rounded-xl transition-all transform active:scale-95"
+        >
+          VINCULAR MI DISPOSITIVO
+        </button>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- PANTALLA 3: Fichaje (ya vinculado)           -->
+      <!-- El empleado solo ve su nombre y el botón     -->
+      <!-- ============================================ -->
+      <div id="screen-clock" class="hidden">
+        <div class="bg-blue-50 rounded-xl p-4 mb-6">
+          <p class="text-blue-800 text-lg font-semibold" id="welcome-name">
+            Hola, ...
+          </p>
+          <p class="text-blue-500 text-sm" id="current-time"></p>
+        </div>
+
+        <button
+          onclick="registrarAsistencia()"
+          id="btn-fichar"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 rounded-xl transition-all transform active:scale-95 text-xl"
+        >
+          ⏱️ FICHAR
+        </button>
+      </div>
+
+      <!-- Footer con info del dispositivo -->
+      <div class="mt-8 pt-6 border-t border-gray-100">
+        <p class="text-xs text-gray-400">
+          Dispositivo: <span id="device-display" class="font-mono">...</span>
+        </p>
+      </div>
+    </div>
+
+    <script>
+     // =============================================
+      // CONFIGURACIÓN
+      // =============================================
+      const API_URL = window.location.origin;
+      
+      // EXTRAER PARÁMETROS (El orden correcto)
+      const urlParams = new URLSearchParams(window.location.search);
+      const tenantId = urlParams.get("tenant_id");
+      const qrToken = urlParams.get("qr_token"); 
+
+      // =============================================
+      // DEVICE TOKEN
+      // =============================================
+      const storageKey = "device_token_" + tenantId;
+      let deviceToken = localStorage.getItem(storageKey);
+      
+      if (!deviceToken) {
+        deviceToken = "dev-" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem(storageKey, deviceToken);
+      }
+      document.getElementById("device-display").innerText = deviceToken;
+
+      let selectedEmployeeId = null;
+
+      // =============================================
+      // FUNCIONES DE UI
+      // =============================================
+      function showScreen(screenId) {
+        document.querySelectorAll('[id^="screen-"]').forEach((el) => el.classList.add("hidden"));
+        document.getElementById(screenId).classList.remove("hidden");
+      }
+
+      function showStatus(message, isError = false) {
+        const status = document.getElementById("status-card");
+        status.className = `mb-6 p-4 rounded-lg text-sm font-medium block ${
+          isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+        }`;
+        status.innerText = message;
+      }
+
+      function hideStatus() {
+        document.getElementById("status-card").className = "hidden mb-6 p-4 rounded-lg text-sm font-medium";
+      }
+
+      function updateClock() {
+        const now = new Date();
+        document.getElementById("current-time").innerText = now.toLocaleDateString("es-AR") + " — " + now.toLocaleTimeString("es-AR");
+      }
+
+      function bindEnterKeys() {
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+
+          const screenLink = !document.getElementById("screen-link").classList.contains("hidden");
+          const screenClock = !document.getElementById("screen-clock").classList.contains("hidden");
+
+          if (screenLink && selectedEmployeeId) {
+            event.preventDefault();
+            linkDevice();
+            return;
+          }
+
+          if (screenClock) {
+            event.preventDefault();
+            registrarAsistencia();
+          }
+        });
+      }
+
+      // =============================================
+      // FLUJO PRINCIPAL
+      // =============================================
+      async function init() {
+        bindEnterKeys();
+        if (!tenantId) {
+          document.getElementById("subtitle").innerText = "";
+          showScreen("screen-no-tenant");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_URL}/devices/check`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tenant_id: tenantId, device_token: deviceToken }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            document.getElementById("subtitle").innerText = "";
+            showStatus(`❌ ${data.detail}`, true);
+            return;
+          }
+
+          if (data.status === "linked") {
+            document.getElementById("subtitle").innerText = "Listo para fichar";
+            document.getElementById("welcome-name").innerText = `Hola, ${data.employee_name} 👋`;
+            updateClock();
+            setInterval(updateClock, 1000);
+            showScreen("screen-clock");
+          } else {
+            document.getElementById("subtitle").innerText = "Vinculá tu dispositivo";
+            await loadUnlinkedEmployees();
+            showScreen("screen-link");
+          }
+        } catch (error) {
+          showStatus("❌ Error de conexión con el servidor", true);
+        }
+      }
+
+      // =============================================
+      // CARGAR EMPLEADOS
+      // =============================================
+      async function loadUnlinkedEmployees() {
+        try {
+          const response = await fetch(`${API_URL}/devices/employees/unlinked?tenant_id=${tenantId}`);
+          const employees = await response.json();
+          const list = document.getElementById("employee-list");
+          list.innerHTML = ""; 
+
+          if (employees.length === 0) {
+            list.innerHTML = `<p class="text-gray-400 text-sm py-4">No hay empleados disponibles. Contactá al administrador.</p>`;
+            return;
+          }
+
+          employees.forEach((emp) => {
+            const btn = document.createElement("button");
+            btn.className = `w-full p-3 border-2 border-gray-200 rounded-lg text-left hover:border-purple-400 transition-all`;
+            btn.innerHTML = `<span class="font-semibold text-gray-800">${emp.nombre}</span><span class="text-gray-400 text-sm ml-2">${emp.sector}</span>`;
+            btn.onclick = () => selectEmployee(emp.id, btn);
+            list.appendChild(btn);
+          });
+        } catch (error) {
+          showStatus("❌ Error al cargar empleados", true);
+        }
+      }
+
+      function selectEmployee(employeeId, btnElement) {
+        selectedEmployeeId = employeeId;
+        document.querySelectorAll("#employee-list button").forEach((b) => {
+          b.classList.remove("border-purple-500", "bg-purple-50");
+          b.classList.add("border-gray-200");
+        });
+        btnElement.classList.remove("border-gray-200");
+        btnElement.classList.add("border-purple-500", "bg-purple-50");
+        document.getElementById("btn-link").disabled = false;
+      }
+
+      // =============================================
+      // VINCULAR DISPOSITIVO
+      // =============================================
+      async function linkDevice() {
+        const btn = document.getElementById("btn-link");
+        btn.disabled = true;
+        btn.innerText = "Vinculando...";
+        hideStatus();
+
+        try {
+          const response = await fetch(`${API_URL}/devices/link`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tenant_id: tenantId,
+              employee_id: selectedEmployeeId,
+              device_token: deviceToken,
+              device_name: navigator.userAgent.substring(0, 100),
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showStatus(`✅ ${data.message}`);
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showStatus(`❌ ${data.detail}`, true);
+            btn.disabled = false;
+            btn.innerText = "VINCULAR MI DISPOSITIVO";
+          }
+        } catch (error) {
+          showStatus("❌ Error de conexión", true);
+          btn.disabled = false;
+          btn.innerText = "VINCULAR MI DISPOSITIVO";
+        }
+      }
+
+      // =============================================
+      // REGISTRAR ASISTENCIA (Limpio y corregido)
+      // =============================================
+      async function registrarAsistencia() {
+        const btn = document.getElementById("btn-fichar");
+        btn.disabled = true;
+        btn.innerText = "⏳ Procesando...";
+        hideStatus();
+
+        // Armamos el payload acá adentro, justo antes de mandarlo
+        const payload = {
+          tenant_id: tenantId,
+          device_token: deviceToken,
+          qr_token: qrToken // Acá viaja el token dinámico!
+        };
+
+        try {
+          const response = await fetch(`${API_URL}/attendance/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showStatus(`✅ ${data.message}`);
+          } else {
+            // Manejamos los errores limpios (como el 400 del QR expirado) o los 422 si algo falla feo
+            const errorMsg = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+            showStatus(`❌ ${errorMsg}`, true);
+          }
+        } catch (error) {
+          showStatus("❌ Error de conexión con el servidor", true);
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "⏱️ FICHAR";
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

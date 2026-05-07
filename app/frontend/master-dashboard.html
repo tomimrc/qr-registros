@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg: #eef3fb;
+            --bg-soft: #f8fbff;
+            --ink: #131a24;
+            --muted: #5f6b7d;
+            --line: #d8e1ef;
+            --accent: #1d4ed8;
+            --accent-strong: #1e40af;
+            --danger: #b91c1c;
+            --ok: #166534;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 20%, #dbeafe 0%, transparent 44%),
+                radial-gradient(circle at 92% 8%, #e0f2fe 0%, transparent 38%),
+                linear-gradient(rgba(30,64,175,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30,64,175,0.05) 1px, transparent 1px),
+                linear-gradient(170deg, var(--bg-soft) 0%, var(--bg) 100%);
+            background-size: auto, auto, 22px 22px, 22px 22px, auto;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .bento-card {
+            background: rgba(255, 255, 255, 0.84);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 14px 34px rgba(30, 64, 175, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .field {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: transform 0.16s, filter 0.16s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            filter: saturate(1.05);
+        }
+
+        .btn-neutral {
+            background: #0f172a;
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .chip {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 12px;
+            color: var(--muted);
+            background: #fff;
+        }
+
+        .icon-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            color: var(--accent-strong);
+            border: 1px solid #c7d7f5;
+            font-size: 14px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        @media (max-width: 900px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .reveal {
+            animation: reveal-up 400ms ease both;
+        }
+
+        @keyframes reveal-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="screen-login" class="min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-md bento-card p-5 sm:p-6 reveal mx-2">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold mb-1 flex items-center gap-2"><span class="icon-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"></rect><rect x="13" y="3" width="8" height="5" rx="2"></rect><rect x="13" y="10" width="8" height="11" rx="2"></rect><rect x="3" y="13" width="8" height="8" rx="2"></rect></svg></span>Master Dashboard</h1>
+                <span class="chip">Control SaaS</span>
+            </div>
+            <p class="text-sm mb-6" style="color: var(--muted);">Acceso para super admin interno</p>
+
+            <div id="login-error" class="hidden bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm mb-3"></div>
+
+            <div class="space-y-3">
+                <input id="login-email" type="email" placeholder="superadmin@empresa.com"
+                    class="field" />
+                <input id="login-password" type="password" placeholder="Contrasena"
+                    class="field" />
+                <button onclick="loginMaster()" class="w-full btn-primary py-2.5">
+                    Ingresar
+                </button>
+            </div>
+
+            <div class="mt-4 border-t pt-4" style="border-color: var(--line);">
+                <button onclick="toggleBootstrap()" class="text-sm font-semibold" style="color: var(--accent-strong);">Bootstrap inicial</button>
+                <div id="bootstrap-panel" class="hidden mt-3 space-y-2">
+                    <input id="bootstrap-nombre" type="text" placeholder="Nombre" required minlength="2"
+                        class="field" />
+                    <input id="bootstrap-email" type="email" placeholder="Email" required
+                        class="field" />
+                    <input id="bootstrap-password" type="password" placeholder="Contrasena" required minlength="8"
+                        class="field" />
+                    <input id="bootstrap-key" type="password" placeholder="MASTER_BOOTSTRAP_KEY" required
+                        class="field" />
+                    <button onclick="bootstrapMaster()" class="w-full btn-neutral py-2 text-sm">
+                        Crear primer super admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-master" class="hidden">
+        <nav class="px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b" style="background: rgba(255,255,255,0.8); border-color: var(--line); backdrop-filter: blur(10px);">
+            <div class="flex items-center gap-2">
+                <span class="icon-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="2"></rect><path d="M4 10h3M4 14h3M17 4v3M7 4v3M20 10h-3M20 14h-3M17 20v-3M7 20v-3"></path></svg></span>
+                <div>
+                <h2 class="text-lg font-bold">Panel Maestro</h2>
+                <p id="master-info" class="text-xs" style="color: var(--muted);"></p>
+                </div>
+            </div>
+            <button onclick="logoutMaster()" class="chip">Salir</button>
+        </nav>
+
+        <main class="px-4 sm:px-6 py-5 space-y-5 max-w-[1500px] mx-auto">
+            <div id="global-message" class="hidden rounded-lg px-3 py-2 text-sm"></div>
+
+            <section class="bento-card p-4 reveal">
+                <div class="kpi-grid">
+                    <div class="rounded-xl p-3" style="background:#f6f9ff; border:1px solid var(--line);">
+                        <p class="text-xs" style="color: var(--muted);">Nucleo</p>
+                        <p class="font-semibold">Control de clientes</p>
+                    </div>
+                    <div class="rounded-xl p-3" style="background:#f6f9ff; border:1px solid var(--line);">
+                        <p class="text-xs" style="color: var(--muted);">Modo</p>
+                        <p class="font-semibold">Arquitectura modular</p>
+                    </div>
+                    <div class="rounded-xl p-3" style="background:#f6f9ff; border:1px solid var(--line);">
+                        <p class="text-xs" style="color: var(--muted);">Acceso</p>
+                        <p class="font-semibold">Super admin interno</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bento-card p-4 sm:p-5 reveal">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                    <h3 class="text-md font-semibold flex items-center gap-2"><span class="icon-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path><circle cx="8" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="16" cy="19" r="1"></circle></svg></span>Runtime Modular</h3>
+                    <button onclick="loadRuntimeModules()" class="btn-neutral text-sm px-3 py-2">Actualizar runtime</button>
+                </div>
+                <div id="runtime-summary" class="text-sm rounded-xl p-3 mb-3" style="background:#f8faf9; border:1px solid var(--line); color: var(--muted);">
+                    Cargando estado de modulos...
+                </div>
+                <div id="runtime-modules-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2"></div>
+                <div id="runtime-issues" class="mt-3 text-xs"></div>
+            </section>
+
+            <div class="grid grid-cols-1 xl:grid-cols-14 gap-5 reveal">
+                <section class="xl:col-span-5 bento-card p-4 sm:p-5">
+                    <h3 class="text-md font-semibold mb-4 flex items-center gap-2"><span class="icon-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19c0-2.2-1.8-4-4-4H7c-2.2 0-4 1.8-4 4"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6M16 11h6"></path></svg></span>Alta rapida de cliente</h3>
+                    <div class="space-y-3">
+                        <input id="create-name" type="text" placeholder="Nombre comercial"
+                            class="field" />
+                        <input id="create-slug" type="text" placeholder="slug-ejemplo"
+                            class="field" />
+                        <input id="create-email" type="email" placeholder="admin@cliente.com"
+                            class="field" />
+                        <input id="create-admin-nombre" type="text" placeholder="Nombre admin"
+                            class="field" />
+                        <input id="create-timezone" type="text" value="America/Argentina/Buenos_Aires"
+                            class="field" />
+
+                        <div class="rounded-xl p-3 text-sm" style="background: #f8faf9; border: 1px solid var(--line);">
+                            <p class="font-semibold mb-2">Features iniciales</p>
+                            <label class="flex items-center gap-2 mb-1">
+                                <input id="feature-qr" type="checkbox" style="accent-color: var(--accent);" checked />
+                                <span>qr_attendance</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input id="feature-sales" type="checkbox" style="accent-color: var(--accent);" checked />
+                                <span>sales_analytics</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input id="feature-crm" type="checkbox" style="accent-color: var(--accent);" />
+                                <span>crm_core</span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs" style="color: var(--muted);">Meses vigencia</label>
+                            <input id="create-feature-months" type="number" min="1" max="120" value="1"
+                                class="field w-24" />
+                        </div>
+
+                        <button onclick="createClient()" class="w-full btn-primary py-2 text-sm">
+                            Crear cliente
+                        </button>
+                    </div>
+                    <div id="create-result" class="hidden mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-gray-800"></div>
+                </section>
+
+                <section class="xl:col-span-9 bento-card p-4 sm:p-5">
+                    <div class="flex flex-col lg:flex-row gap-2 items-stretch lg:items-end mb-4">
+                        <div class="flex-1 min-w-0 lg:min-w-[220px]">
+                            <label class="text-xs" style="color: var(--muted);">Buscar</label>
+                            <input id="search-q" type="text" placeholder="Nombre, slug o email"
+                                class="field" />
+                        </div>
+                        <div>
+                            <label class="text-xs" style="color: var(--muted);">Estado</label>
+                            <select id="search-status" class="field bg-white">
+                                <option value="all">Todos</option>
+                                <option value="active">Activos</option>
+                                <option value="inactive">Inactivos</option>
+                            </select>
+                        </div>
+                        <button onclick="loadClients()" class="btn-neutral text-sm px-3 py-2 w-full lg:w-auto">Buscar</button>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border" style="border-color: var(--line);">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left border-b" style="color: var(--muted); border-color: var(--line); background: #fbfbf8;">
+                                    <th class="py-2">Cliente</th>
+                                    <th class="py-2">Slug</th>
+                                    <th class="py-2">Admin</th>
+                                    <th class="py-2">Suscripciones</th>
+                                    <th class="py-2">Estado</th>
+                                    <th class="py-2">Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <section id="detail-section" class="hidden bento-card p-5 reveal">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                    <h3 class="text-md font-semibold flex items-center gap-2"><span class="icon-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10h1M14 10h1M9 14h1M14 14h1"></path></svg></span>Detalle de cliente</h3>
+                    <div class="flex gap-2">
+                        <button id="btn-client-disable" onclick="setClientStatus(false)" class="hidden bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg px-3 py-2">Desactivar cliente</button>
+                        <button id="btn-client-enable" onclick="setClientStatus(true)" class="hidden bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg px-3 py-2">Activar cliente</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div class="lg:col-span-4 rounded-xl p-4 text-sm space-y-1" style="background: #f8faf9; border: 1px solid var(--line);" id="detail-tenant"></div>
+
+                    <div class="lg:col-span-4 rounded-xl p-4" style="background: #f8faf9; border: 1px solid var(--line);">
+                        <p class="text-sm font-semibold mb-3 flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M5 21c0-3.3 3-6 7-6s7 2.7 7 6"></path></svg>Admin del cliente</p>
+                        <div class="space-y-2">
+                            <input id="detail-admin-email" type="email" class="field" />
+                            <input id="detail-admin-nombre" type="text" class="field" />
+                            <label class="text-xs flex items-center gap-2" style="color: var(--muted);">
+                                <input id="detail-admin-active" type="checkbox" style="accent-color: var(--accent);" /> Admin activo
+                            </label>
+                            <button onclick="updateClientAdmin()" class="w-full btn-neutral text-sm py-2">Guardar admin</button>
+                            <button onclick="resetClientAdminPassword()" class="w-full btn-primary text-sm py-2">Resetear password</button>
+                            <div id="reset-password-box" class="hidden rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 rounded-xl p-4" style="background: #f8faf9; border: 1px solid var(--line);">
+                        <p class="text-sm font-semibold mb-3 flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-4M12 13V3M20 21v-9M20 8V3"></path><path d="M2 14h4M10 13h4M18 8h4"></path></svg>Editar cliente</p>
+                        <div class="space-y-2">
+                            <input id="detail-name" type="text" class="field" />
+                            <input id="detail-slug" type="text" class="field" />
+                            <input id="detail-timezone" type="text" class="field" />
+                            <button onclick="updateClient()" class="w-full btn-neutral text-sm py-2">Guardar cliente</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="rounded-xl p-4" style="background: #f8faf9; border: 1px solid var(--line);">
+                        <p class="text-sm font-semibold mb-3 flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Features</p>
+                        <div id="features-list" class="space-y-2"></div>
+                    </div>
+                    <div class="rounded-xl p-4" style="background: #f8faf9; border: 1px solid var(--line);">
+                        <p class="text-sm font-semibold mb-3 flex items-center gap-2"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Auditoria</p>
+                        <div id="audit-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        const MASTER_TOKEN_KEY = 'master_admin_token';
+        const CORE_FEATURES = ['qr_attendance', 'sales_analytics', 'crm_core'];
+
+        let masterToken = localStorage.getItem(MASTER_TOKEN_KEY);
+        let selectedTenantId = null;
+        let selectedTenantDetail = null;
+        let searchDebounceTimer = null;
+
+        function showMessage(message, type = 'success') {
+            const el = document.getElementById('global-message');
+            el.textContent = message;
+            el.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+            if (type === 'error') {
+                el.classList.add('bg-red-100', 'text-red-700');
+            } else {
+                el.classList.add('bg-green-100', 'text-green-700');
+            }
+        }
+
+        function hideMessage() {
+            const el = document.getElementById('global-message');
+            el.classList.add('hidden');
+        }
+
+        function toggleBootstrap() {
+            document.getElementById('bootstrap-panel').classList.toggle('hidden');
+        }
+
+        function logoutMaster() {
+            localStorage.removeItem(MASTER_TOKEN_KEY);
+            masterToken = null;
+            selectedTenantId = null;
+            selectedTenantDetail = null;
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById('screen-login').classList.remove('hidden');
+            document.getElementById('screen-master').classList.add('hidden');
+        }
+
+        function showMasterScreen() {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-master').classList.remove('hidden');
+        }
+
+        async function apiFetch(path, options = {}) {
+            const headers = options.headers || {};
+            if (masterToken) {
+                headers.Authorization = `Bearer ${masterToken}`;
+            }
+
+            const response = await fetch(`${API_URL}${path}`, {
+                ...options,
+                headers,
+            });
+
+            if (response.status === 401) {
+                logoutMaster();
+                throw new Error('Sesion expirada');
+            }
+
+            return response;
+        }
+
+        async function initMaster() {
+            if (!masterToken) {
+                showLogin();
+                return;
+            }
+
+            try {
+                const res = await apiFetch('/master/auth/me');
+                if (!res.ok) {
+                    logoutMaster();
+                    return;
+                }
+
+                const data = await res.json();
+                document.getElementById('master-info').textContent = `${data.nombre} (${data.email})`;
+                showMasterScreen();
+                await Promise.all([loadClients(), loadRuntimeModules()]);
+            } catch {
+                showLogin();
+            }
+        }
+
+        async function loginMaster() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.classList.add('hidden');
+
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch(`${API_URL}/master/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.detail || 'No se pudo iniciar sesion';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                masterToken = data.access_token;
+                localStorage.setItem(MASTER_TOKEN_KEY, masterToken);
+                await initMaster();
+            } catch (err) {
+                errorEl.textContent = `Error de conexion: ${err.message}`;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function bootstrapMaster() {
+            const payload = {
+                nombre: document.getElementById('bootstrap-nombre').value.trim(),
+                email: document.getElementById('bootstrap-email').value.trim(),
+                password: document.getElementById('bootstrap-password').value,
+                bootstrap_key: document.getElementById('bootstrap-key').value,
+            };
+
+            if (!payload.nombre || !payload.email || !payload.password || !payload.bootstrap_key) {
+                showMessage('Completá nombre, email, contraseña y bootstrap key antes de continuar.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/master/auth/bootstrap`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    const detail = Array.isArray(data.detail)
+                        ? data.detail.map((item) => `${item.loc?.slice(-1)?.[0] || 'campo'}: ${item.msg}`).join(' | ')
+                        : data.detail;
+                    showMessage(detail || 'No se pudo bootstrapear', 'error');
+                    return;
+                }
+
+                masterToken = data.access_token;
+                localStorage.setItem(MASTER_TOKEN_KEY, masterToken);
+                await initMaster();
+                showMessage('Super admin creado correctamente');
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        function formatFeatureLabel(featureCode) {
+            if (featureCode === 'qr_attendance') return 'QR';
+            if (featureCode === 'sales_analytics') return 'Sales';
+            if (featureCode === 'crm_core') return 'CRM';
+            return featureCode;
+        }
+
+        function getActiveSubscriptions(client) {
+            const features = Array.isArray(client.features) ? client.features : [];
+            return features
+                .filter((feature) => CORE_FEATURES.includes(feature.feature_code) && feature.active)
+                .map((feature) => formatFeatureLabel(feature.feature_code));
+        }
+
+        function formatAuditDateToBuenosAires(rawDate) {
+            if (!rawDate) return '-';
+            const date = new Date(rawDate);
+            if (Number.isNaN(date.getTime())) return rawDate;
+
+            const parts = new Intl.DateTimeFormat('es-AR', {
+                timeZone: 'America/Argentina/Buenos_Aires',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+            }).formatToParts(date);
+
+            const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+            return `${map.day}-${map.month}-${map.year} ${map.hour}:${map.minute}`;
+        }
+
+        function moduleBadge(active) {
+            return active
+                ? '<span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">Activo</span>'
+                : '<span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Inactivo</span>';
+        }
+
+        async function loadRuntimeModules() {
+            const summary = document.getElementById('runtime-summary');
+            const grid = document.getElementById('runtime-modules-grid');
+            const issuesBox = document.getElementById('runtime-issues');
+
+            if (!summary || !grid || !issuesBox) return;
+
+            summary.textContent = 'Cargando estado de modulos...';
+            grid.innerHTML = '';
+            issuesBox.innerHTML = '';
+
+            try {
+                const res = await apiFetch('/master/runtime/modules');
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo cargar runtime modular', 'error');
+                    summary.textContent = 'No se pudo cargar runtime modular.';
+                    return;
+                }
+
+                const profile = String(data.profile || 'custom').toUpperCase();
+                const strictLabel = data.strict_validation ? 'ON' : 'OFF';
+                const validLabel = data.is_valid ? 'Valido' : 'Con observaciones';
+                summary.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="chip">Perfil: ${profile}</span>
+                        <span class="chip">Strict: ${strictLabel}</span>
+                        <span class="chip">Estado: ${validLabel}</span>
+                        <span class="chip">Actualizado: ${formatAuditDateToBuenosAires(data.updated_at)}</span>
+                    </div>
+                `;
+
+                const modules = data.modules || {};
+                const cards = ['crm', 'booking', 'sales', 'qr'].map((key) => `
+                    <div class="rounded-xl p-3" style="background:#f8faf9; border:1px solid var(--line);">
+                        <p class="text-xs" style="color: var(--muted);">Modulo</p>
+                        <p class="font-semibold mb-2">${key.toUpperCase()}</p>
+                        ${moduleBadge(!!modules[key])}
+                    </div>
+                `);
+                grid.innerHTML = cards.join('');
+
+                if (Array.isArray(data.issues) && data.issues.length > 0) {
+                    issuesBox.innerHTML = `
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900">
+                            <p class="font-semibold mb-1">Observaciones de configuracion</p>
+                            <ul class="list-disc ml-4">
+                                ${data.issues.map((issue) => `<li>${issue}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    issuesBox.innerHTML = '<div class="rounded-xl border border-green-200 bg-green-50 p-3 text-green-800">Sin observaciones en configuracion modular.</div>';
+                }
+            } catch (err) {
+                summary.textContent = 'Error de conexion al consultar runtime modular.';
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        function buildClientRow(client) {
+            const activeSubscriptions = getActiveSubscriptions(client);
+            const hasAnyActiveService = activeSubscriptions.length > 0;
+            const stateBadge = client.is_active && hasAnyActiveService
+                ? '<span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">Activo</span>'
+                : '<span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Inactivo</span>';
+            const subscriptionsText = hasAnyActiveService ? activeSubscriptions.join(', ') : '-';
+
+            return `
+                <tr class="border-b">
+                    <td class="py-2 pr-2">${client.name}</td>
+                    <td class="py-2 pr-2 text-gray-600">${client.slug}</td>
+                    <td class="py-2 pr-2 text-gray-600">${client.primary_admin_email || '-'}</td>
+                    <td class="py-2 pr-2 text-gray-600">${subscriptionsText}</td>
+                    <td class="py-2 pr-2">${stateBadge}</td>
+                    <td class="py-2">
+                        <button onclick="openClientDetail('${client.id}')" class="text-sm bg-gray-800 hover:bg-black text-white px-2.5 py-1.5 rounded-lg">Ver</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        async function loadClients() {
+            hideMessage();
+            const q = document.getElementById('search-q').value.trim();
+            const status = document.getElementById('search-status').value;
+
+            const params = new URLSearchParams();
+            if (q) params.append('q', q);
+            if (status === 'active') params.append('is_active', 'true');
+            if (status === 'inactive') params.append('is_active', 'false');
+
+            try {
+                const res = await apiFetch(`/master/clients?${params.toString()}`);
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo cargar clientes', 'error');
+                    return;
+                }
+
+                const table = document.getElementById('clients-table');
+                if (!data.items.length) {
+                    table.innerHTML = '<tr><td colspan="6" class="py-4 text-gray-500">Sin resultados</td></tr>';
+                    return;
+                }
+                table.innerHTML = data.items.map(buildClientRow).join('');
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        function collectCreateFeatureCodes() {
+            const featureCodes = [];
+            if (document.getElementById('feature-qr').checked) featureCodes.push('qr_attendance');
+            if (document.getElementById('feature-sales').checked) featureCodes.push('sales_analytics');
+            if (document.getElementById('feature-crm')?.checked) featureCodes.push('crm_core');
+            return featureCodes;
+        }
+
+        async function createClient() {
+            const payload = {
+                name: document.getElementById('create-name').value.trim(),
+                slug: document.getElementById('create-slug').value.trim(),
+                email: document.getElementById('create-email').value.trim(),
+                admin_nombre: document.getElementById('create-admin-nombre').value.trim(),
+                timezone: document.getElementById('create-timezone').value.trim() || 'America/Argentina/Buenos_Aires',
+                feature_codes: collectCreateFeatureCodes(),
+                feature_months: Number(document.getElementById('create-feature-months').value || 1),
+            };
+
+            try {
+                const res = await apiFetch('/master/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo crear cliente', 'error');
+                    return;
+                }
+
+                showMessage('Cliente creado correctamente');
+                document.getElementById('create-result').classList.remove('hidden');
+                document.getElementById('create-result').innerHTML = `
+                    <p><strong>Admin:</strong> ${data.admin.email}</p>
+                    <p><strong>Password temporal:</strong> ${data.temporary_password}</p>
+                    <p><strong>Email enviado:</strong> ${data.email_sent ? 'Si' : 'No'}</p>
+                `;
+
+                await loadClients();
+                await openClientDetail(data.tenant.id);
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        function renderTenantDetail(detail) {
+            const box = document.getElementById('detail-tenant');
+            box.innerHTML = `
+                <p><strong>ID:</strong> ${detail.id}</p>
+                <p><strong>Nombre:</strong> ${detail.name}</p>
+                <p><strong>Slug:</strong> ${detail.slug}</p>
+                <p><strong>Timezone:</strong> ${detail.timezone}</p>
+                <p><strong>Creado:</strong> ${detail.created_at || '-'}</p>
+                <p><strong>Estado:</strong> ${detail.is_active ? 'Activo' : 'Inactivo'}</p>
+            `;
+
+            document.getElementById('btn-client-disable').classList.toggle('hidden', !detail.is_active);
+            document.getElementById('btn-client-enable').classList.toggle('hidden', detail.is_active);
+
+            document.getElementById('detail-name').value = detail.name || '';
+            document.getElementById('detail-slug').value = detail.slug || '';
+            document.getElementById('detail-timezone').value = detail.timezone || '';
+
+            document.getElementById('detail-admin-email').value = detail.admin?.email || '';
+            document.getElementById('detail-admin-nombre').value = detail.admin?.nombre || '';
+            document.getElementById('detail-admin-active').checked = !!detail.admin?.is_active;
+        }
+
+        function renderFeatures(detail) {
+            const container = document.getElementById('features-list');
+            const current = detail.features || [];
+            const allCodes = ['qr_attendance', 'sales_analytics', 'crm_core'];
+
+            container.innerHTML = allCodes.map(code => {
+                const found = current.find(x => x.feature_code === code);
+                const active = found ? found.active : false;
+                const period = found ? `${found.period_start} a ${found.period_end}` : 'Sin vigencia';
+                return `
+                    <div class="border border-gray-200 rounded-lg p-2.5 text-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <strong>${code}</strong>
+                            <span class="text-xs ${active ? 'text-green-700' : 'text-red-700'}">${active ? 'Activa' : 'Inactiva'}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">${period}</p>
+                        <div class="flex items-center gap-2">
+                            <input id="months-${code}" type="number" min="1" max="120" value="1" class="w-20 border border-gray-300 rounded px-2 py-1 text-xs" />
+                            <button onclick="activateFeature('${code}')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded px-2 py-1">Activar</button>
+                            <button onclick="deactivateFeature('${code}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded px-2 py-1">Desactivar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderResetPasswordBox(tempPassword, requestedAt = null) {
+            const box = document.getElementById('reset-password-box');
+            if (!box) return;
+
+            if (!tempPassword) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+
+            box.classList.remove('hidden');
+            box.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="font-semibold text-amber-900 mb-1">Último password temporal</p>
+                        <p class="font-mono text-sm break-all text-amber-950">${tempPassword}</p>
+                        ${requestedAt ? `<p class="mt-2 text-[11px] text-amber-800">Generado: ${requestedAt}</p>` : ''}
+                    </div>
+                    <button type="button" onclick="copyResetPassword()" class="shrink-0 rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] font-semibold text-amber-900 hover:bg-amber-100">Copiar</button>
+                </div>
+            `;
+        }
+
+        async function copyResetPassword() {
+            const tempPassword = selectedTenantDetail?.last_temporary_password;
+            if (!tempPassword) return;
+
+            try {
+                await navigator.clipboard.writeText(tempPassword);
+                showMessage('Password temporal copiada');
+            } catch {
+                showMessage('No se pudo copiar la password', 'error');
+            }
+        }
+
+        function renderAudit(items) {
+            const box = document.getElementById('audit-list');
+            if (!items.length) {
+                box.innerHTML = '<p class="text-sm text-gray-500">Sin eventos de auditoria</p>';
+                return;
+            }
+
+            box.innerHTML = items.map(event => `
+                <div class="border border-gray-200 rounded-lg p-2 text-xs">
+                    <p><strong>${event.action}</strong></p>
+                    <p class="text-gray-500">${formatAuditDateToBuenosAires(event.created_at)}</p>
+                </div>
+            `).join('');
+        }
+
+        function bindEnterKey(targetIds, action) {
+            targetIds.forEach((id) => {
+                const element = document.getElementById(id);
+                if (!element) return;
+                element.addEventListener('keydown', (event) => {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    action();
+                });
+            });
+        }
+
+        function bindMasterEnterKeys() {
+            bindEnterKey(['login-email', 'login-password'], loginMaster);
+            bindEnterKey(['bootstrap-nombre', 'bootstrap-email', 'bootstrap-password', 'bootstrap-key'], bootstrapMaster);
+            bindEnterKey(['create-name', 'create-slug', 'create-email', 'create-admin-nombre', 'create-timezone', 'create-feature-months'], createClient);
+            bindEnterKey(['search-q', 'search-status'], loadClients);
+            bindEnterKey(['detail-name', 'detail-slug', 'detail-timezone'], updateClient);
+            bindEnterKey(['detail-admin-email', 'detail-admin-nombre'], updateClientAdmin);
+        }
+
+        function setupLiveSearch() {
+            const searchInput = document.getElementById('search-q');
+            const statusSelect = document.getElementById('search-status');
+            if (!searchInput || !statusSelect) return;
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    loadClients();
+                }, 250);
+            });
+
+            statusSelect.addEventListener('change', () => {
+                loadClients();
+            });
+        }
+
+        async function loadAudit(tenantId) {
+            try {
+                const res = await apiFetch(`/master/clients/${tenantId}/audit?limit=30`);
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo cargar auditoria', 'error');
+                    return;
+                }
+                renderAudit(data.items || []);
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function openClientDetail(tenantId) {
+            selectedTenantId = tenantId;
+            document.getElementById('detail-section').classList.remove('hidden');
+
+            try {
+                const res = await apiFetch(`/master/clients/${tenantId}`);
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo cargar detalle', 'error');
+                    return;
+                }
+
+                selectedTenantDetail = data;
+                renderTenantDetail(data);
+                renderFeatures(data);
+                renderResetPasswordBox(data.last_temporary_password || null, data.last_password_reset_at || null);
+                await loadAudit(tenantId);
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function updateClient() {
+            if (!selectedTenantId) return;
+            const payload = {
+                name: document.getElementById('detail-name').value.trim(),
+                slug: document.getElementById('detail-slug').value.trim(),
+                timezone: document.getElementById('detail-timezone').value.trim(),
+            };
+
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo editar cliente', 'error');
+                    return;
+                }
+
+                showMessage('Cliente actualizado');
+                await openClientDetail(selectedTenantId);
+                await loadClients();
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function updateClientAdmin() {
+            if (!selectedTenantId) return;
+
+            const payload = {
+                email: document.getElementById('detail-admin-email').value.trim(),
+                nombre: document.getElementById('detail-admin-nombre').value.trim(),
+                is_active: document.getElementById('detail-admin-active').checked,
+            };
+
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}/admin`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo actualizar admin', 'error');
+                    return;
+                }
+
+                showMessage('Admin actualizado');
+                await openClientDetail(selectedTenantId);
+                await loadClients();
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function resetClientAdminPassword() {
+            if (!selectedTenantId) return;
+
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}/admin/reset-password`, {
+                    method: 'POST',
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo resetear password', 'error');
+                    return;
+                }
+
+                selectedTenantDetail = selectedTenantDetail || {};
+                selectedTenantDetail.last_temporary_password = data.temporary_password;
+                selectedTenantDetail.last_password_reset_at = data.reset_at || new Date().toISOString();
+                renderResetPasswordBox(selectedTenantDetail.last_temporary_password, selectedTenantDetail.last_password_reset_at);
+                showMessage('Password reseteada');
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function setClientStatus(isActive) {
+            if (!selectedTenantId) return;
+
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}/status?is_active=${isActive}`, {
+                    method: 'POST',
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo cambiar estado', 'error');
+                    return;
+                }
+
+                showMessage(`Cliente ${isActive ? 'activado' : 'desactivado'}`);
+                await openClientDetail(selectedTenantId);
+                await loadClients();
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function activateFeature(featureCode) {
+            if (!selectedTenantId) return;
+            const months = Number(document.getElementById(`months-${featureCode}`).value || 1);
+
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}/features/${featureCode}/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ months }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo activar feature', 'error');
+                    return;
+                }
+
+                showMessage(`Feature ${featureCode} activada`);
+                await openClientDetail(selectedTenantId);
+                await loadClients();
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        async function deactivateFeature(featureCode) {
+            if (!selectedTenantId) return;
+            try {
+                const res = await apiFetch(`/master/clients/${selectedTenantId}/features/${featureCode}/deactivate`, {
+                    method: 'POST',
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showMessage(data.detail || 'No se pudo desactivar feature', 'error');
+                    return;
+                }
+
+                showMessage(`Feature ${featureCode} desactivada`);
+                await openClientDetail(selectedTenantId);
+                await loadClients();
+            } catch (err) {
+                showMessage(`Error de conexion: ${err.message}`, 'error');
+            }
+        }
+
+        bindMasterEnterKeys();
+        setupLiveSearch();
+        initMaster();
+    </script>
+</body>
+</html>

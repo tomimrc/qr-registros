@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR de Fichaje | Pantalla dedicada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+      body {
+        background:
+          radial-gradient(circle at top, rgba(34, 197, 94, 0.18), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.14), transparent 24%),
+          linear-gradient(180deg, #07111f 0%, #091521 100%);
+      }
+      .glass {
+        background: rgba(8, 15, 28, 0.72);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-100 antialiased">
+    <main class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+      <section id="screen-login" class="mx-auto w-full max-w-md">
+        <div class="glass rounded-3xl p-6 shadow-2xl shadow-slate-950/40">
+          <div class="mb-6 text-center">
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-300">Pantalla QR</p>
+            <h1 class="mt-3 text-3xl font-black text-white">Abrir fichaje en pantalla dedicada</h1>
+            <p class="mt-3 text-sm text-slate-300">Ingresá para mostrar el QR en una TV, monitor o tablet sin exponer el dashboard.</p>
+          </div>
+
+          <div id="login-error" class="hidden mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-700"></div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-slate-200">Email</label>
+              <input id="login-email" type="email" placeholder="admin@empresa.com" class="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none focus:ring-2 focus:ring-emerald-400" />
+            </div>
+            <div>
+              <label class="mb-1 block text-sm font-medium text-slate-200">Contraseña</label>
+              <input id="login-password" type="password" placeholder="••••••••" class="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none focus:ring-2 focus:ring-emerald-400" />
+            </div>
+            <button onclick="login()" class="w-full rounded-xl bg-emerald-400 py-3 font-bold text-slate-950 transition hover:bg-emerald-300">Ingresar y abrir QR</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-qr" class="hidden w-full">
+        <div class="glass rounded-[2rem] p-5 shadow-2xl shadow-slate-950/40 sm:p-8">
+          <div class="flex flex-col gap-4 border-b border-slate-700/70 pb-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-300">Modo pantalla</p>
+              <h2 class="mt-2 text-3xl font-black text-white">Código QR de fichaje</h2>
+              <p class="mt-2 text-sm text-slate-300">Dejá esta pestaña abierta en una pantalla dedicada. El QR se renueva automáticamente.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <a href="/dashboard" class="rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/80">Volver al dashboard</a>
+              <button onclick="logout()" class="rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-white">Salir</button>
+            </div>
+          </div>
+
+          <div class="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div class="space-y-4">
+              <div class="rounded-2xl border border-slate-700/70 bg-slate-950/50 p-5">
+                <p class="text-sm text-slate-400">Estado</p>
+                <p id="qr-status" class="mt-2 text-xl font-bold text-white">Cargando...</p>
+                <p id="qr-update-time" class="mt-2 text-sm text-slate-300">Esperando generación del QR</p>
+              </div>
+              <div class="rounded-2xl border border-slate-700/70 bg-gradient-to-br from-emerald-400/15 to-cyan-400/10 p-5">
+                <p class="text-sm text-emerald-200">Uso recomendado</p>
+                <p class="mt-2 text-lg font-semibold text-white">Conectá esta pantalla a un monitor o TV en el local.</p>
+                <p class="mt-2 text-sm text-slate-300">Mientras quede abierta, los empleados pueden fichar sin tocar el panel administrativo.</p>
+              </div>
+            </div>
+
+            <div class="flex justify-center">
+              <div class="rounded-[2rem] bg-white p-6 shadow-2xl shadow-slate-950/40">
+                <canvas id="qr-canvas" class="mx-auto"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const API_URL = window.location.origin;
+      let token = localStorage.getItem('admin_token');
+      let qrInterval = null;
+
+      async function verifyToken() {
+        try {
+          const res = await fetch(`${API_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          return res.ok;
+        } catch {
+          return false;
+        }
+      }
+
+      async function login() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+        errorEl.classList.add('hidden');
+
+        const formData = new FormData();
+        formData.append('username', email);
+        formData.append('password', password);
+
+        try {
+          const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', body: formData });
+          const data = await res.json();
+          if (!res.ok) {
+            errorEl.textContent = data.detail || 'Error al iniciar sesión';
+            errorEl.classList.remove('hidden');
+            return;
+          }
+
+          token = data.access_token;
+          localStorage.setItem('admin_token', token);
+          showQRScreen();
+          await generarYMostrarQR();
+        } catch {
+          errorEl.textContent = 'Error de conexión con el servidor';
+          errorEl.classList.remove('hidden');
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem('admin_token');
+        token = null;
+        if (qrInterval) clearInterval(qrInterval);
+        document.getElementById('screen-qr').classList.add('hidden');
+        document.getElementById('screen-login').classList.remove('hidden');
+      }
+
+      function showQRScreen() {
+        document.getElementById('screen-login').classList.add('hidden');
+        document.getElementById('screen-qr').classList.remove('hidden');
+      }
+
+      async function generarYMostrarQR() {
+        const statusEl = document.getElementById('qr-status');
+        const updateEl = document.getElementById('qr-update-time');
+
+        try {
+          const response = await fetch(`${API_URL}/admin/qr-data`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.ok) throw new Error('No se pudo obtener el QR');
+
+          const data = await response.json();
+          new QRious({
+            element: document.getElementById('qr-canvas'),
+            value: data.url,
+            size: 360,
+            level: 'L',
+          });
+
+          statusEl.textContent = 'QR activo';
+          updateEl.textContent = `Actualizado: ${new Date().toLocaleTimeString('es-AR')} · refresca cada 30s`;
+        } catch (error) {
+          statusEl.textContent = 'Error al generar QR';
+          updateEl.textContent = error.message;
+        }
+      }
+
+      async function init() {
+        if (token && await verifyToken()) {
+          showQRScreen();
+          await generarYMostrarQR();
+          if (qrInterval) clearInterval(qrInterval);
+          qrInterval = setInterval(generarYMostrarQR, 30000);
+          return;
+        }
+
+        document.getElementById('screen-login').classList.remove('hidden');
+      }
+
+      init();
+    </script>
+  </body>
+</html>
