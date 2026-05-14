@@ -14,6 +14,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
+from app.core.bootstrap import validate_and_log_config
 from app.database import engine, Base
 from app.middleware.auth_middleware import AuthMiddleware
 
@@ -25,6 +26,7 @@ from app.routers import devices as devices_router
 from app.routers import sales as sales_router
 from app.routers import master as master_router
 from app.routers import crm as crm_router
+from app.routers import config as config_router
 
 # === Import Modelos (Para que Alembic / create_all los detecte) ===
 from app.models import (
@@ -96,6 +98,9 @@ async def _ensure_debug_schema_compatibility() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Validate and log config on startup (before any database operations)
+    validate_and_log_config()
+    
     # En desarrollo, crea las tablas automáticamente si no existen
     if settings.DEBUG:
         await _ensure_debug_schema_compatibility()
@@ -143,6 +148,7 @@ if settings.is_production and allowed_hosts:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # === Inclusión de Routers (Sin duplicados) ===
+app.include_router(config_router.router)
 app.include_router(auth_router.router, prefix="/auth", tags=["Autenticación"])
 app.include_router(admin_router.router, prefix="/admin", tags=["Dashboard"])
 app.include_router(attendance_router.router, prefix="/attendance", tags=["Asistencia"])
